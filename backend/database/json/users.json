@@ -1,0 +1,28 @@
+[
+  {
+    "name": "System Administrator",
+    "email": "admin@avon.co.in",
+    "password": "$2a$10$kpHoOE/XWk8B/mJ7G.VqHezzinH7AcRNrU.8SRfCJdUk7/4Z7HIqG",
+    "role": "Admin",
+    "department": "Operations & IT",
+    "avatarUrl": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=256&h=256"
+  },
+  {
+    "name": "Amit Sharma",
+    "email": "employee@avon.co.in",
+    "password": "$2a$10$4hXO7KLYMYXfSI31RdLt4uQlocl.DOr1STgQsdLNnGIpmxvNfsL3i",
+    "role": "Employee",
+    "department": "Mobile Apps",
+    "avatarUrl": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=256&h=256"
+  },
+  {
+    "_id": "mqajxhophse62",
+    "name": "T. Chitra Yadav (Google)",
+    "email": "chitra.yadav@gmail.com",
+    "googleId": "google-oauth-chitra-12345",
+    "role": "Employee",
+    "department": "Operations",
+    "avatarUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=256&h=256",
+    "createdAt": "2026-06-12T06:34:47.882Z"
+  }
+]

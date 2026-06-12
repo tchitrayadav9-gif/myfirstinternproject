@@ -1,0 +1,63 @@
+const createModel = require('./modelHelper');
+
+const ProjectSchema = {
+  name: { type: String, required: true },
+  client: { type: String, required: true },
+  progress: { type: Number, default: 0, min: 0, max: 100 },
+  status: { type: String, enum: ['Backlog', 'In Progress', 'In Review', 'Delivered'], default: 'Backlog' },
+  priority: { type: String, enum: ['High', 'Medium', 'Low'], default: 'Medium' },
+  due: { type: String, required: true }
+};
+
+const defaultProjects = [
+  {
+    name: "Mobile Banking Application",
+    client: "Federal FinCo",
+    progress: 75,
+    status: "In Progress",
+    priority: "High",
+    due: "2026-06-25"
+  },
+  {
+    name: "Smart Portal Frontend",
+    client: "Avon Technologies",
+    progress: 95,
+    status: "In Review",
+    priority: "Medium",
+    due: "2026-06-10"
+  },
+  {
+    name: "Predictive AI Core Pipeline",
+    client: "RetailHub India",
+    progress: 45,
+    status: "In Progress",
+    priority: "High",
+    due: "2026-07-02"
+  },
+  {
+    name: "Cloud Migration Strategy",
+    client: "EduGlow Systems",
+    progress: 10,
+    status: "Backlog",
+    priority: "Low",
+    due: "2026-08-15"
+  },
+  {
+    name: "Secure SSO Client Module",
+    client: "TechCorp Inc.",
+    progress: 100,
+    status: "Delivered",
+    priority: "High",
+    due: "2026-05-30"
+  },
+  {
+    name: "E-Commerce Web Portal",
+    client: "Zest Retailers",
+    progress: 100,
+    status: "Delivered",
+    priority: "Medium",
+    due: "2026-05-15"
+  }
+];
+
+module.exports = createModel('Project', ProjectSchema, defaultProjects);

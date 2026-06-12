@@ -1,0 +1,38 @@
+[
+  {
+    "employeeId": "seed-emp-chitra",
+    "employeeName": "T. Chitra Yadav",
+    "date": "2026-06-10",
+    "taskTitle": "Design Dashboard wireframes",
+    "deadline": "2026-06-12",
+    "status": "Completed",
+    "month": "2026-06"
+  },
+  {
+    "employeeId": "seed-emp-chitra",
+    "employeeName": "T. Chitra Yadav",
+    "date": "2026-06-15",
+    "taskTitle": "Implement Recharts Analytics components",
+    "deadline": "2026-06-18",
+    "status": "In Progress",
+    "month": "2026-06"
+  },
+  {
+    "employeeId": "seed-emp-amit",
+    "employeeName": "Amit Sharma",
+    "date": "2026-06-12",
+    "taskTitle": "Android Native Bundle Optimization",
+    "deadline": "2026-06-14",
+    "status": "Pending",
+    "month": "2026-06"
+  },
+  {
+    "employeeId": "seed-emp-pooja",
+    "employeeName": "Pooja Hegde",
+    "date": "2026-06-18",
+    "taskTitle": "Light/Dark CSS styles review",
+    "deadline": "2026-06-20",
+    "status": "Pending",
+    "month": "2026-06"
+  }
+]

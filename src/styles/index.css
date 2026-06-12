@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+@custom-variant light (&:where(.light, .light *));
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-brand-50: #f0f9ff;
+  --color-brand-100: #e0f2fe;
+  --color-brand-200: #bae6fd;
+  --color-brand-300: #7dd3fc;
+  --color-brand-400: #38bdf8;
+  --color-brand-500: #0ea5e9;
+  --color-brand-600: #0284c7;
+  --color-brand-700: #0369a1;
+  --color-brand-800: #075985;
+  --color-brand-900: #0c4a6e;
+  --color-brand-950: #082f49;
+  
+  --font-sans: "Inter", sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html.dark body {
+  background-color: #020617; /* bg-slate-950 */
+  color: #f1f5f9; /* text-slate-100 */
+}
+
+html.light body {
+  background-color: #f8fafc; /* bg-slate-50 */
+  color: #0f172a; /* text-slate-900 */
+}
+
+/* Custom selection overlay */
+::selection {
+  background-color: #0ea5e9; /* brand-500 */
+  color: #ffffff;
+}
+
+/* Premium UI Utility Classes */
+.glass-panel {
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-light {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.glow-card {
+  box-shadow: 0 0 50px -12px rgba(14, 165, 233, 0.15);
+}
+
+.glow-card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glow-card-hover:hover {
+  box-shadow: 0 0 40px -5px rgba(14, 165, 233, 0.3);
+  border-color: rgba(14, 165, 233, 0.4);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #030712; /* bg-slate-950/deep */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #1e293b; /* bg-slate-800 */
+  border-radius: 9999px;
+  transition: background-color 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #334155; /* bg-slate-700 */
+}
+
+/* Skeleton animation overrides */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.03) 20%,
+    rgba(255, 255, 255, 0.08) 60%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: shimmer 2.5s infinite;
+}
+
+/* Code visual grids */
+.bg-grid-pattern {
+  background-size: 30px 30px;
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+}

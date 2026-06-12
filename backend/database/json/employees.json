@@ -1,0 +1,149 @@
+[
+  {
+    "name": "Amit Sharma",
+    "email": "amit.sharma@avon.co.in",
+    "role": "Senior Mobile Engineer",
+    "department": "Mobile Apps",
+    "status": "Active",
+    "joinDate": "2022-03-15",
+    "skills": [
+      "React Native",
+      "Flutter",
+      "iOS Development",
+      "Swift",
+      "Dart"
+    ],
+    "tasks": [
+      {
+        "title": "Optimize Android build size",
+        "deadline": "2026-06-25",
+        "priority": "High",
+        "status": "In Progress"
+      },
+      {
+        "title": "Fix splash screen layout glitch",
+        "deadline": "2026-06-30",
+        "priority": "Low",
+        "status": "Pending"
+      }
+    ]
+  },
+  {
+    "name": "Pooja Hegde",
+    "email": "pooja.hegde@avon.co.in",
+    "role": "Frontend UI Specialist",
+    "department": "Web Development",
+    "status": "Remote",
+    "joinDate": "2023-01-10",
+    "skills": [
+      "React.js",
+      "Tailwind CSS",
+      "HTML5",
+      "CSS3",
+      "JavaScript (ES6)"
+    ],
+    "tasks": [
+      {
+        "title": "Design dashboard layout dark mode",
+        "deadline": "2026-06-15",
+        "priority": "Medium",
+        "status": "Completed"
+      },
+      {
+        "title": "Integrate Area Charts with backend",
+        "deadline": "2026-06-20",
+        "priority": "High",
+        "status": "In Progress"
+      }
+    ]
+  },
+  {
+    "name": "Rahul Deshmukh",
+    "email": "rahul.d@avon.co.in",
+    "role": "Lead DevOps Architect",
+    "department": "Cloud Computing",
+    "status": "Active",
+    "joinDate": "2021-08-20",
+    "skills": [
+      "AWS",
+      "Docker",
+      "Kubernetes",
+      "Jenkins",
+      "Terraform"
+    ],
+    "tasks": [
+      {
+        "title": "Configure SSL renewal cron job",
+        "deadline": "2026-06-18",
+        "priority": "High",
+        "status": "In Progress"
+      },
+      {
+        "title": "Set up multi-region backup",
+        "deadline": "2026-07-05",
+        "priority": "Medium",
+        "status": "Pending"
+      }
+    ]
+  },
+  {
+    "name": "Sneha Sen",
+    "email": "sneha.sen@avon.co.in",
+    "role": "Machine Learning Engineer",
+    "department": "AI Solutions",
+    "status": "On Leave",
+    "joinDate": "2024-02-01",
+    "skills": [
+      "Python",
+      "TensorFlow",
+      "Scikit-Learn",
+      "NumPy",
+      "MLOps"
+    ],
+    "tasks": []
+  },
+  {
+    "name": "Kiran Kumar",
+    "email": "kiran.k@avon.co.in",
+    "role": "Technical Desk Manager",
+    "department": "Support Operations",
+    "status": "Active",
+    "joinDate": "2022-11-05",
+    "skills": [
+      "Technical Support",
+      "Jira Service Desk",
+      "ITIL",
+      "Customer Relations"
+    ],
+    "tasks": [
+      {
+        "title": "Triage AVON-2041 connection error",
+        "deadline": "2026-06-12",
+        "priority": "High",
+        "status": "In Progress"
+      }
+    ]
+  },
+  {
+    "name": "Arjun Mehta",
+    "email": "arjun.m@avon.co.in",
+    "role": "Creative Lead Designer",
+    "department": "UI/UX Design",
+    "status": "Remote",
+    "joinDate": "2023-07-18",
+    "skills": [
+      "Figma",
+      "Adobe Illustrator",
+      "Wireframing",
+      "SaaS UI Layouts"
+    ],
+    "tasks": [
+      {
+        "title": "Design marketing landing page",
+        "deadline": "2026-06-22",
+        "priority": "Medium",
+        "status": "Pending"
+      }
+    ]
+  }
+]

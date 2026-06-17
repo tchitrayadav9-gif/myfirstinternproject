@@ -17,6 +17,26 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Connect database (asynchronous, doesn't block route configuration or export)
+connectDB();
+
+// Root route check
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'success', 
+    message: 'Avon Technologies Smart Portal API is live.',
+    database: global.useJsonDb ? 'Local JSON Fallback File DB' : 'MongoDB Connection Active'
+  });
+});
+
+// Mount API Routers
+app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/employees', require('./routes/employeeRoutes'));
+app.use('/api/clients', require('./routes/clientRoutes'));
+app.use('/api/projects', require('./routes/projectRoutes'));
+app.use('/api/tickets', require('./routes/ticketRoutes'));
+app.use('/api/schedules', require('./routes/scheduleRoutes'));
+
 // Global error handling middleware
 const errorHandler = (err, req, res, next) => {
   const statusCode = res.statusCode ? res.statusCode : 500;
@@ -27,37 +47,19 @@ const errorHandler = (err, req, res, next) => {
   });
 };
 
-const startServer = async () => {
-  // Connect database
-  await connectDB();
+// Register Error Handler
+app.use(errorHandler);
 
-  // Root route check
-  app.get('/', (req, res) => {
-    res.json({ 
-      status: 'success', 
-      message: 'Avon Technologies Smart Portal API is live.',
-      database: global.useJsonDb ? 'Local JSON Fallback File DB' : 'MongoDB Connection Active'
-    });
-  });
-
-  // Mount API Routers
-  app.use('/api/auth', require('./routes/authRoutes'));
-  app.use('/api/employees', require('./routes/employeeRoutes'));
-  app.use('/api/clients', require('./routes/clientRoutes'));
-  app.use('/api/projects', require('./routes/projectRoutes'));
-  app.use('/api/tickets', require('./routes/ticketRoutes'));
-  app.use('/api/schedules', require('./routes/scheduleRoutes'));
-
-  // Register Error Handler
-  app.use(errorHandler);
-
+// Only listen on port if NOT running on Vercel serverless environment
+if (!process.env.VERCEL) {
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
-    console.log('\x1b[36m%s\x1b[0m', `---------------------------------------------------------`);
-    console.log('\x1b[36m%s\x1b[0m', ` Avon Smart Portal API Server is running on port ${PORT}`);
-    console.log('\x1b[36m%s\x1b[0m', ` Active DB State: ${global.useJsonDb ? 'JSON database fallback mode' : 'MongoDB mode'}`);
-    console.log('\x1b[36m%s\x1b[0m', `---------------------------------------------------------`);
+    console.log('---------------------------------------------------------');
+    console.log(` Avon Smart Portal API Server is running on port ${PORT}`);
+    console.log(` Active DB State: ${global.useJsonDb ? 'JSON database fallback mode' : 'MongoDB mode'}`);
+    console.log('---------------------------------------------------------');
   });
-};
+}
 
-startServer();
+// Export the Express app for Vercel Serverless Functions
+module.exports = app;

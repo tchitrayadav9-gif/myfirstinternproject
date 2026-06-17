@@ -1,5 +1,6 @@
 [
   {
+    "_id": "seed-28501ofnj",
     "name": "System Administrator",
     "email": "admin@avon.co.in",
     "password": "$2a$10$kpHoOE/XWk8B/mJ7G.VqHezzinH7AcRNrU.8SRfCJdUk7/4Z7HIqG",
@@ -8,6 +9,7 @@
     "avatarUrl": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=256&h=256"
   },
   {
+    "_id": "seed-31ln1dcip",
     "name": "Amit Sharma",
     "email": "employee@avon.co.in",
     "password": "$2a$10$4hXO7KLYMYXfSI31RdLt4uQlocl.DOr1STgQsdLNnGIpmxvNfsL3i",
@@ -24,5 +26,15 @@
     "department": "Operations",
     "avatarUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=256&h=256",
     "createdAt": "2026-06-12T06:34:47.882Z"
+  },
+  {
+    "_id": "mqhl3q6hdkkcu",
+    "name": "T chitra yadav ",
+    "email": "tchitrayadav9@gmail.com",
+    "password": "$2a$10$Tkh0LWgIxayvNZXXu0vZF.JTqJTiSYgKn0fjtW7JgVKRbhJ0.9UHa",
+    "role": "Employee",
+    "department": "Engineering",
+    "avatarUrl": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=256&h=256",
+    "createdAt": "2026-06-17T04:42:01.673Z"
   }
 ]

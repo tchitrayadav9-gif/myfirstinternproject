@@ -16,6 +16,7 @@ const prevYearMonth = new Date().toISOString().substring(0, 7);
 
 const defaultSchedules = [
   {
+    _id: "seed-sched-chitra-1",
     employeeId: "seed-emp-chitra",
     employeeName: "T. Chitra Yadav",
     date: `${currentYearMonth}-10`,
@@ -25,6 +26,7 @@ const defaultSchedules = [
     month: currentYearMonth
   },
   {
+    _id: "seed-sched-chitra-2",
     employeeId: "seed-emp-chitra",
     employeeName: "T. Chitra Yadav",
     date: `${currentYearMonth}-15`,
@@ -34,6 +36,7 @@ const defaultSchedules = [
     month: currentYearMonth
   },
   {
+    _id: "seed-sched-amit",
     employeeId: "seed-emp-amit",
     employeeName: "Amit Sharma",
     date: `${currentYearMonth}-12`,
@@ -43,6 +46,7 @@ const defaultSchedules = [
     month: currentYearMonth
   },
   {
+    _id: "seed-sched-pooja",
     employeeId: "seed-emp-pooja",
     employeeName: "Pooja Hegde",
     date: `${currentYearMonth}-18`,

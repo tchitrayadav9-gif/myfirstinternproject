@@ -11,6 +11,7 @@ const ProjectSchema = {
 
 const defaultProjects = [
   {
+    _id: "seed-proj-mobile",
     name: "Mobile Banking Application",
     client: "Federal FinCo",
     progress: 75,
@@ -19,6 +20,7 @@ const defaultProjects = [
     due: "2026-06-25"
   },
   {
+    _id: "seed-proj-portal",
     name: "Smart Portal Frontend",
     client: "Avon Technologies",
     progress: 95,
@@ -27,6 +29,7 @@ const defaultProjects = [
     due: "2026-06-10"
   },
   {
+    _id: "seed-proj-ai",
     name: "Predictive AI Core Pipeline",
     client: "RetailHub India",
     progress: 45,
@@ -35,6 +38,7 @@ const defaultProjects = [
     due: "2026-07-02"
   },
   {
+    _id: "seed-proj-cloud",
     name: "Cloud Migration Strategy",
     client: "EduGlow Systems",
     progress: 10,
@@ -43,6 +47,7 @@ const defaultProjects = [
     due: "2026-08-15"
   },
   {
+    _id: "seed-proj-sso",
     name: "Secure SSO Client Module",
     client: "TechCorp Inc.",
     progress: 100,
@@ -51,6 +56,7 @@ const defaultProjects = [
     due: "2026-05-30"
   },
   {
+    _id: "seed-proj-ecommerce",
     name: "E-Commerce Web Portal",
     client: "Zest Retailers",
     progress: 100,

@@ -1,5 +1,6 @@
 [
   {
+    "_id": "seed-hb6adkj7b",
     "name": "Mobile Banking Application",
     "client": "Federal FinCo",
     "progress": 75,
@@ -8,6 +9,7 @@
     "due": "2026-06-25"
   },
   {
+    "_id": "seed-j4oui2dk1",
     "name": "Smart Portal Frontend",
     "client": "Avon Technologies",
     "progress": 95,
@@ -16,6 +18,7 @@
     "due": "2026-06-10"
   },
   {
+    "_id": "seed-wo500lxve",
     "name": "Predictive AI Core Pipeline",
     "client": "RetailHub India",
     "progress": 45,
@@ -24,6 +27,7 @@
     "due": "2026-07-02"
   },
   {
+    "_id": "seed-z5zf1mduv",
     "name": "Cloud Migration Strategy",
     "client": "EduGlow Systems",
     "progress": 10,
@@ -32,6 +36,7 @@
     "due": "2026-08-15"
   },
   {
+    "_id": "seed-s2wimsk2q",
     "name": "Secure SSO Client Module",
     "client": "TechCorp Inc.",
     "progress": 100,
@@ -40,6 +45,7 @@
     "due": "2026-05-30"
   },
   {
+    "_id": "seed-bpv0qf27i",
     "name": "E-Commerce Web Portal",
     "client": "Zest Retailers",
     "progress": 100,

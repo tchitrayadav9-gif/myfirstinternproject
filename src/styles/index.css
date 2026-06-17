@@ -75,19 +75,30 @@ html.light body {
   height: 6px;
 }
 
-::-webkit-scrollbar-track {
-  background-color: #030712; /* bg-slate-950/deep */
+html.light ::-webkit-scrollbar-track {
+  background-color: #f1f5f9; /* bg-slate-100 */
 }
 
-::-webkit-scrollbar-thumb {
+html.dark ::-webkit-scrollbar-track {
+  background-color: #020617; /* bg-slate-950 */
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1; /* bg-slate-300 */
+}
+
+html.dark ::-webkit-scrollbar-thumb {
   background-color: #1e293b; /* bg-slate-800 */
-  border-radius: 9999px;
-  transition: background-color 0.2s;
 }
 
-::-webkit-scrollbar-thumb:hover {
+html.light ::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8; /* bg-slate-400 */
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
   background-color: #334155; /* bg-slate-700 */
 }
+
 
 /* Skeleton animation overrides */
 @keyframes shimmer {
@@ -125,3 +136,37 @@ html.light body {
   background-image: linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
                     linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
 }
+
+/* Global theme overrides for form elements to prevent default browser colors */
+input, select, textarea {
+  color: #0f172a !important; /* text-slate-900 */
+  background-color: #f8fafc; /* bg-slate-50 */
+  border-color: #cbd5e1; /* border-slate-300 */
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+html.dark input, 
+html.dark select, 
+html.dark textarea {
+  color: #f8fafc !important; /* text-slate-50 */
+  background-color: #0b0f19; /* dark background */
+  border-color: #1e293b; /* border-slate-800 */
+}
+
+/* Specific inputs with disabled state */
+input:disabled, select:disabled, textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Ensure select options inherit correct dark mode colors in browsers */
+option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+html.dark option {
+  background-color: #0f172a !important;
+  color: #f1f5f9 !important;
+}
+

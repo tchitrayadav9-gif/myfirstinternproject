@@ -148,7 +148,7 @@ const AdminLayout = () => {
                       className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 ${
                         active 
                           ? 'bg-[#1E40AF] text-white shadow-md shadow-blue-800/35 border-l-4 border-cyan-400' 
-                          : 'hover:bg-slate-800/50 hover:text-white text-slate-450'
+                          : 'hover:bg-slate-800/50 hover:text-white text-slate-400'
                       }`}
                     >
                       <Icon className="w-4 h-4 shrink-0" />
@@ -196,7 +196,7 @@ const AdminLayout = () => {
             {/* Theme Toggle */}
             <button 
               onClick={toggleTheme}
-              className="p-2 rounded-xl text-slate-500 dark:text-slate-450 hover:bg-slate-100 dark:hover:bg-slate-850 hover:text-slate-700 dark:hover:text-white transition-colors"
+              className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-850 hover:text-slate-700 dark:hover:text-white transition-colors"
               title={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
             >
               {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -204,7 +204,7 @@ const AdminLayout = () => {
 
             {/* Notification alert */}
             <div className="relative">
-              <button className="p-2 rounded-xl text-slate-505 hover:bg-slate-100 dark:hover:bg-slate-850 hover:text-slate-700 dark:hover:text-white transition-colors">
+              <button className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-850 hover:text-slate-700 dark:hover:text-white transition-colors">
                 <Bell className="w-4 h-4" />
                 <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500 animate-ping" />
               </button>
@@ -224,7 +224,7 @@ const AdminLayout = () => {
                 </div>
                 <div className="hidden md:block text-left">
                   <span className="text-xs font-bold block leading-none">{user?.name || 'Admin'}</span>
-                  <span className="text-[9px] text-slate-405 block mt-1">{user?.email || 'admin@avon.co.in'}</span>
+                  <span className="text-[9px] text-slate-400 block mt-1">{user?.email || 'admin@avon.co.in'}</span>
                 </div>
               </button>
 
@@ -235,7 +235,7 @@ const AdminLayout = () => {
                     <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-40 py-2 text-xs">
                       <div className="px-4 py-2 border-b border-slate-150 dark:border-slate-800">
                         <span className="font-bold block text-slate-800 dark:text-slate-200 truncate">{user?.name || 'Administrator'}</span>
-                        <span className="text-[10px] text-slate-450 block truncate">{user?.role || 'Admin'}</span>
+                        <span className="text-[10px] text-slate-400 block truncate">{user?.role || 'Admin'}</span>
                       </div>
                       <Link 
                         to="/settings" 

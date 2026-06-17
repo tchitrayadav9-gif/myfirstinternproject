@@ -220,7 +220,7 @@ const EmployeeLayout = () => {
                 {showProfileMenu && (
                   <>
                     <div className="fixed inset-0 z-30" onClick={() => setShowProfileMenu(false)} />
-                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-850 border border-slate-205 dark:border-slate-800 rounded-2xl shadow-xl z-40 py-2 text-xs">
+                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-40 py-2 text-xs">
                       <div className="px-4 py-2 border-b border-slate-150 dark:border-slate-800">
                         <span className="font-bold block text-slate-800 dark:text-slate-200 truncate">{user?.name || 'T. Chitra Yadav'}</span>
                         <span className="text-[10px] text-slate-450 block truncate">Employee Portal</span>

@@ -8,16 +8,37 @@ if (!fs.existsSync(JSON_DB_DIR)) {
   fs.mkdirSync(JSON_DB_DIR, { recursive: true });
 }
 
-// Helper to read a collection file
+// Helper to read a collection file and ensure all items have IDs
 function readCollection(collectionName) {
   const filePath = path.join(JSON_DB_DIR, `${collectionName}.json`);
   if (!fs.existsSync(filePath)) {
-    // If file doesn't exist, return empty array (or seed data later)
+    // If file doesn't exist, return empty array
     return [];
   }
   try {
     const data = fs.readFileSync(filePath, 'utf8');
-    return JSON.parse(data);
+    const parsed = JSON.parse(data);
+    
+    // Ensure every item has a unique ID to prevent saving failure
+    let needsRewrite = false;
+    const fixed = parsed.map(item => {
+      if (!item._id && !item.id) {
+        needsRewrite = true;
+        return {
+          _id: 'seed-' + Math.random().toString(36).substring(2, 11),
+          ...item
+        };
+      }
+      return item;
+    });
+
+    if (needsRewrite) {
+      // Synchronously write back the modified items with IDs
+      const tempPath = path.join(JSON_DB_DIR, `${collectionName}.json`);
+      fs.writeFileSync(tempPath, JSON.stringify(fixed, null, 2), 'utf8');
+    }
+
+    return fixed;
   } catch (err) {
     console.error(`Error reading collection ${collectionName}:`, err);
     return [];

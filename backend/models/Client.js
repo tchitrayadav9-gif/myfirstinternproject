@@ -12,6 +12,7 @@ const ClientSchema = {
 
 const defaultClients = [
   {
+    _id: "seed-client-techcorp",
     company: "TechCorp Inc.",
     contact: "Aditi Rao",
     email: "aditi.r@techcorp.com",
@@ -21,6 +22,7 @@ const defaultClients = [
     status: "Active"
   },
   {
+    _id: "seed-client-finhealth",
     company: "FinHealth Corp.",
     contact: "Vikram Sen",
     email: "v.sen@finhealth.in",
@@ -30,6 +32,7 @@ const defaultClients = [
     status: "Active"
   },
   {
+    _id: "seed-client-eduglow",
     company: "EduGlow India",
     contact: "Rajesh Kumar",
     email: "rajesh.k@eduglow.org",
@@ -39,6 +42,7 @@ const defaultClients = [
     status: "Active"
   },
   {
+    _id: "seed-client-retailhub",
     company: "RetailHub Logistics",
     contact: "Sonia Patel",
     email: "s.patel@retailhub.com",
@@ -48,6 +52,7 @@ const defaultClients = [
     status: "Contract Review"
   },
   {
+    _id: "seed-client-globalcore",
     company: "Global Core Apps",
     contact: "David Wright",
     email: "david.w@globalcore.com",

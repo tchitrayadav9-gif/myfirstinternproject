@@ -19,6 +19,9 @@
       "destination": "backend/server.js"
     },
     {
+      "handle": "filesystem"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

@@ -1,7 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 
-const JSON_DB_DIR = path.join(__dirname, 'json');
+const JSON_DB_DIR = process.env.VERCEL
+  ? path.join('/tmp', 'json')
+  : path.join(__dirname, 'json');
 
 // Ensure JSON directory exists
 if (!fs.existsSync(JSON_DB_DIR)) {

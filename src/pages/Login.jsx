@@ -79,28 +79,7 @@ const Login = () => {
     }
   };
 
-  const handleQuickLogin = async (selectedEmail, selectedPassword) => {
-    setError('');
-    setIsLoggingIn(true);
-    try {
-      const response = await login(selectedEmail, selectedPassword);
-      setIsLoggingIn(false);
-      
-      if (response.success) {
-        // Redirect based on role
-        if (response.role === 'Admin') {
-          navigate('/dashboard');
-        } else {
-          navigate('/employee-dashboard');
-        }
-      } else {
-        setError(response.message);
-      }
-    } catch (err) {
-      setIsLoggingIn(false);
-      setError('Server connection failed. Make sure the backend API is running.');
-    }
-  };
+
 
   // Pre-fill remember me email
   React.useEffect(() => {
@@ -254,28 +233,7 @@ const Login = () => {
             </button>
           </form>
 
-          {/* Quick Access Buttons */}
-          <div className="mt-6 border-t border-slate-800/80 pt-4 text-center space-y-3">
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Quick Portal Access</p>
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('admin@avon.co.in', 'admin123')}
-                disabled={isLoggingIn}
-                className="bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 font-bold py-2.5 px-4 rounded-xl border border-sky-500/20 hover:border-sky-500/40 active:scale-[0.98] transition-all flex items-center justify-center space-x-1.5"
-              >
-                <span>Login as Admin</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('employee@avon.co.in', 'employee123')}
-                disabled={isLoggingIn}
-                className="bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 font-bold py-2.5 px-4 rounded-xl border border-indigo-500/20 hover:border-indigo-500/40 active:scale-[0.98] transition-all flex items-center justify-center space-x-1.5"
-              >
-                <span>Login as Employee</span>
-              </button>
-            </div>
-          </div>
+
 
           {/* Redirect to Register */}
           <div className="mt-4 text-center">

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Cpu, Mail, Lock, ShieldAlert, ArrowLeft, Send } from 'lucide-react';
+import { Cpu, Mail, Lock, ShieldAlert, ArrowLeft, Send, ChevronDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Login = () => {
@@ -10,6 +10,7 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [googleRole, setGoogleRole] = useState('Employee');
   
   const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
@@ -60,8 +61,8 @@ const Login = () => {
     setError('');
     setIsLoggingIn(true);
     try {
-      // Sign in via Google (defaults to Employee role on new Google signups)
-      const response = await loginWithGoogle('Employee');
+      // Sign in via Google using selected role
+      const response = await loginWithGoogle(googleRole);
       setIsLoggingIn(false);
       
       if (response.success) {
@@ -202,6 +203,22 @@ const Login = () => {
                 </>
               )}
             </button>
+
+            {/* Google Role Selector */}
+            <div className="pt-2 flex flex-col space-y-1.5">
+              <label className="text-[9px] text-slate-500 font-bold uppercase tracking-wider text-center">Google Role for New Signups</label>
+              <div className="relative">
+                <select
+                  value={googleRole}
+                  onChange={(e) => setGoogleRole(e.target.value)}
+                  className="w-full bg-slate-950/60 border border-slate-850 hover:border-slate-800 text-[10px] text-slate-300 py-2 px-3 pr-8 rounded-lg focus:outline-none transition-all cursor-pointer text-center appearance-none"
+                >
+                  <option value="Employee" className="bg-slate-950 text-slate-200">Staff Employee (No data for new signups)</option>
+                  <option value="Admin" className="bg-slate-950 text-slate-200">Portal Administrator (Simulated data & charts)</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-2.5 w-3.5 h-3.5 text-slate-500 pointer-events-none" />
+              </div>
+            </div>
 
             {/* Google Login button */}
             <button

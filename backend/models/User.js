@@ -12,26 +12,7 @@ const UserSchema = {
 };
 
 // Seed data
-const defaultUsers = [
-  {
-    _id: "seed-user-admin",
-    name: "System Administrator",
-    email: "admin@avon.co.in",
-    password: "admin123", // Will be hashed dynamically below
-    role: "Admin",
-    department: "Operations & IT",
-    avatarUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=256&h=256"
-  },
-  {
-    _id: "seed-user-employee",
-    name: "T. Chitra Yadav",
-    email: "employee@avon.co.in",
-    password: "employee123", // Will be hashed dynamically below
-    role: "Employee",
-    department: "CSE - AIML",
-    avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=256&h=256"
-  }
-];
+const defaultUsers = [];
 
 // Hash passwords in seed data if they aren't already hashed
 const hashedUsers = defaultUsers.map(user => {

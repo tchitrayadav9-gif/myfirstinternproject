@@ -62,10 +62,10 @@ const Dashboard = () => {
         } else {
           // Fallback seeding if employee record is not created yet
           setMetrics({
-            assigned: 5,
-            pending: 3,
-            completed: 2,
-            deadlinesCount: 3
+            assigned: 0,
+            pending: 0,
+            completed: 0,
+            deadlinesCount: 0
           });
         }
       } catch (err) {

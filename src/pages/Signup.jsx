@@ -60,6 +60,8 @@ const Signup = () => {
       setIsSigningUp(false);
       
       if (response.success) {
+        localStorage.setItem('avon_remember_email', email);
+        localStorage.setItem('avon_remember_password', password);
         if (response.role === 'Admin') {
           navigate('/dashboard');
         } else {

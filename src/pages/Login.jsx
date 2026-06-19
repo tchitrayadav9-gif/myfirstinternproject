@@ -10,7 +10,6 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [googleRole, setGoogleRole] = useState('Employee');
   
   const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
@@ -38,8 +37,10 @@ const Login = () => {
       if (response.success) {
         if (rememberMe) {
           localStorage.setItem('avon_remember_email', email);
+          localStorage.setItem('avon_remember_password', password);
         } else {
           localStorage.removeItem('avon_remember_email');
+          localStorage.removeItem('avon_remember_password');
         }
 
         // Redirect based on role
@@ -61,8 +62,8 @@ const Login = () => {
     setError('');
     setIsLoggingIn(true);
     try {
-      // Sign in via Google using selected role
-      const response = await loginWithGoogle(googleRole);
+      // Sign in via Google (defaults to Employee role on new Google signups)
+      const response = await loginWithGoogle('Employee');
       setIsLoggingIn(false);
       
       if (response.success) {
@@ -82,12 +83,16 @@ const Login = () => {
 
 
 
-  // Pre-fill remember me email
+  // Pre-fill remember me email & password
   React.useEffect(() => {
     const savedEmail = localStorage.getItem('avon_remember_email');
+    const savedPassword = localStorage.getItem('avon_remember_password');
     if (savedEmail) {
       setEmail(savedEmail);
       setRememberMe(true);
+    }
+    if (savedPassword) {
+      setPassword(savedPassword);
     }
   }, []);
 
@@ -175,16 +180,16 @@ const Login = () => {
               </div>
             </div>
 
-            {/* Remember Me */}
+            {/* Remember Credentials */}
             <div className="flex items-center justify-between py-1 text-xs">
               <label className="flex items-center space-x-2 text-slate-350 cursor-pointer">
                 <input 
                   type="checkbox" 
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="rounded bg-slate-950 border-slate-800 text-sky-500 focus:ring-sky-500/30"
+                  className="rounded bg-slate-950 border-slate-850 text-sky-500/50"
                 />
-                <span>Remember Email</span>
+                <span>Remember Credentials</span>
               </label>
             </div>
 
@@ -203,22 +208,6 @@ const Login = () => {
                 </>
               )}
             </button>
-
-            {/* Google Role Selector */}
-            <div className="pt-2 flex flex-col space-y-1.5">
-              <label className="text-[9px] text-slate-500 font-bold uppercase tracking-wider text-center">Google Role for New Signups</label>
-              <div className="relative">
-                <select
-                  value={googleRole}
-                  onChange={(e) => setGoogleRole(e.target.value)}
-                  className="w-full bg-slate-950/60 border border-slate-850 hover:border-slate-800 text-[10px] text-slate-300 py-2 px-3 pr-8 rounded-lg focus:outline-none transition-all cursor-pointer text-center appearance-none"
-                >
-                  <option value="Employee" className="bg-slate-950 text-slate-200">Staff Employee (No data for new signups)</option>
-                  <option value="Admin" className="bg-slate-950 text-slate-200">Portal Administrator (Simulated data & charts)</option>
-                </select>
-                <ChevronDown className="absolute right-3 top-2.5 w-3.5 h-3.5 text-slate-500 pointer-events-none" />
-              </div>
-            </div>
 
             {/* Google Login button */}
             <button

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Cpu, Mail, Lock, ShieldAlert, ArrowLeft, Send, User, Award } from 'lucide-react';
+import { Cpu, Mail, Lock, ShieldAlert, ArrowLeft, Send, User, Award, ChevronDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Signup = () => {
@@ -184,11 +184,12 @@ const Signup = () => {
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
-                  className="w-full bg-slate-950/80 border border-slate-850 hover:border-slate-800 focus:border-sky-500/50 text-xs text-slate-200 pl-10 pr-4 py-3 rounded-xl focus:outline-none transition-all appearance-none"
+                  className="w-full bg-slate-950/80 border border-slate-850 hover:border-slate-800 focus:border-sky-500/50 text-xs text-slate-200 pl-10 pr-10 py-3 rounded-xl focus:outline-none transition-all appearance-none cursor-pointer"
                 >
-                  <option value="Employee">Staff Employee (CSE - AIML, etc.)</option>
-                  <option value="Admin">Portal Administrator</option>
+                  <option value="Employee" className="bg-slate-950 text-slate-200">Staff Employee (CSE - AIML, etc.)</option>
+                  <option value="Admin" className="bg-slate-950 text-slate-200">Portal Administrator</option>
                 </select>
+                <ChevronDown className="absolute right-3.5 top-3.5 w-4 h-4 text-slate-500 pointer-events-none" />
               </div>
             </div>
 

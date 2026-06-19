@@ -19,6 +19,7 @@ const TicketSchema = {
 
 const defaultTickets = [
   {
+    _id: "seed-ticket-1",
     id: "AVON-2041",
     client: "TechCorp Inc.",
     poc: "Aditi Rao",
@@ -30,6 +31,7 @@ const defaultTickets = [
     replies: []
   },
   {
+    _id: "seed-ticket-2",
     id: "AVON-2039",
     client: "FinHealth Corp.",
     poc: "Vikram Sen",
@@ -41,6 +43,7 @@ const defaultTickets = [
     replies: []
   },
   {
+    _id: "seed-ticket-3",
     id: "AVON-2035",
     client: "EduGlow India",
     poc: "Rajesh Kumar",

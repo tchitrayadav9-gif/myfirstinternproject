@@ -79,6 +79,29 @@ const Login = () => {
     }
   };
 
+  const handleQuickLogin = async (selectedEmail, selectedPassword) => {
+    setError('');
+    setIsLoggingIn(true);
+    try {
+      const response = await login(selectedEmail, selectedPassword);
+      setIsLoggingIn(false);
+      
+      if (response.success) {
+        // Redirect based on role
+        if (response.role === 'Admin') {
+          navigate('/dashboard');
+        } else {
+          navigate('/employee-dashboard');
+        }
+      } else {
+        setError(response.message);
+      }
+    } catch (err) {
+      setIsLoggingIn(false);
+      setError('Server connection failed. Make sure the backend API is running.');
+    }
+  };
+
   // Pre-fill remember me email
   React.useEffect(() => {
     const savedEmail = localStorage.getItem('avon_remember_email');
@@ -231,20 +254,26 @@ const Login = () => {
             </button>
           </form>
 
-          {/* Quick Mock Login details for convenience */}
-          <div className="mt-6 border-t border-slate-800/80 pt-4 text-left space-y-2">
-            <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider text-center">Portal Demo Evaluation Accounts</p>
-            <div className="grid grid-cols-2 gap-3 text-[10px]">
-              <div className="bg-slate-950/50 p-2 rounded-xl border border-slate-850/60 cursor-pointer hover:border-sky-500/20 transition-colors" onClick={() => { setEmail('admin@avon.co.in'); setPassword('admin123'); }}>
-                <span className="text-sky-450 font-bold block">Administrator</span>
-                <span className="text-slate-400 block">User: admin@avon.co.in</span>
-                <span className="text-slate-400 block">Pass: admin123</span>
-              </div>
-              <div className="bg-slate-950/50 p-2 rounded-xl border border-slate-850/60 cursor-pointer hover:border-indigo-500/20 transition-colors" onClick={() => { setEmail('employee@avon.co.in'); setPassword('employee123'); }}>
-                <span className="text-indigo-455 font-bold block">T. Chitra Yadav</span>
-                <span className="text-slate-400 block">User: employee@avon.co.in</span>
-                <span className="text-slate-400 block">Pass: employee123</span>
-              </div>
+          {/* Quick Access Buttons */}
+          <div className="mt-6 border-t border-slate-800/80 pt-4 text-center space-y-3">
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Quick Portal Access</p>
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <button
+                type="button"
+                onClick={() => handleQuickLogin('admin@avon.co.in', 'admin123')}
+                disabled={isLoggingIn}
+                className="bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 font-bold py-2.5 px-4 rounded-xl border border-sky-500/20 hover:border-sky-500/40 active:scale-[0.98] transition-all flex items-center justify-center space-x-1.5"
+              >
+                <span>Login as Admin</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickLogin('employee@avon.co.in', 'employee123')}
+                disabled={isLoggingIn}
+                className="bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 font-bold py-2.5 px-4 rounded-xl border border-indigo-500/20 hover:border-indigo-500/40 active:scale-[0.98] transition-all flex items-center justify-center space-x-1.5"
+              >
+                <span>Login as Employee</span>
+              </button>
             </div>
           </div>
 

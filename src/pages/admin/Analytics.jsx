@@ -8,12 +8,14 @@ import { employeeService, projectService, ticketService } from '../../services/a
 import { TrendingUp, Award, BarChart3, AlertCircle } from 'lucide-react';
 
 const Analytics = () => {
+  const [mounted, setMounted] = useState(false);
   const [departmentWorkload, setDepartmentWorkload] = useState([]);
   const [ticketResponseData, setTicketResponseData] = useState([]);
   const [deliveryVelocity, setDeliveryVelocity] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    setMounted(true);
     const compileAnalytics = async () => {
       setIsLoading(true);
       try {
@@ -93,62 +95,74 @@ const Analytics = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 text-left">
           
           {/* Radar Workloads */}
-          <div className="lg:col-span-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm">
+          <div className="lg:col-span-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm min-w-0">
             <div className="pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Department Workloads (Radar)</h3>
               <p className="text-[9px] text-slate-405 font-medium">Comparative metrics mapping total employees (scaled) vs delegated tasks</p>
             </div>
             <div className="h-64 w-full flex justify-center items-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={departmentWorkload}>
-                  <PolarGrid stroke="#e2e8f0" />
-                  <PolarAngleAxis dataKey="subject" fontSize={9} />
-                  <PolarRadiusAxis fontSize={9} />
-                  <Radar name="Staff Ratio" dataKey="Staff" stroke="#1E40AF" fill="#1E40AF" fillOpacity={0.25} />
-                  <Radar name="Delegated Milestones" dataKey="Tasks" stroke="#06B6D4" fill="#06B6D4" fillOpacity={0.25} />
-                  <Legend wrapperStyle={{ fontSize: '9px', fontWeight: 'bold' }} />
-                </RadarChart>
-              </ResponsiveContainer>
+              {!mounted ? (
+                <div className="h-full w-full bg-slate-100 dark:bg-slate-800/40 animate-pulse rounded-xl" />
+              ) : (
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                  <RadarChart cx="50%" cy="50%" outerRadius="70%" data={departmentWorkload}>
+                    <PolarGrid stroke="#e2e8f0" />
+                    <PolarAngleAxis dataKey="subject" fontSize={9} />
+                    <PolarRadiusAxis fontSize={9} />
+                    <Radar name="Staff Ratio" dataKey="Staff" stroke="#1E40AF" fill="#1E40AF" fillOpacity={0.25} isAnimationActive={false} />
+                    <Radar name="Delegated Milestones" dataKey="Tasks" stroke="#06B6D4" fill="#06B6D4" fillOpacity={0.25} isAnimationActive={false} />
+                    <Legend wrapperStyle={{ fontSize: '9px', fontWeight: 'bold' }} />
+                  </RadarChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
 
           {/* Ticket Response progression */}
-          <div className="lg:col-span-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm">
+          <div className="lg:col-span-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm min-w-0">
             <div className="pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Support Desk Response Rate</h3>
               <p className="text-[9px] text-slate-405 font-medium">Monthly tickets raised vs resolved timeline progress</p>
             </div>
             <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={ticketResponseData}>
-                  <CartesianGrid stroke="#f1f5f9" vertical={false} />
-                  <XAxis dataKey="month" fontSize={9} stroke="#94a3b8" tickLine={false} />
-                  <YAxis fontSize={9} stroke="#94a3b8" tickLine={false} />
-                  <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px' }} />
-                  <Legend wrapperStyle={{ fontSize: '9px', fontWeight: 'bold' }} />
-                  <Area type="monotone" dataKey="Raised" fill="#1e40af" fillOpacity={0.1} stroke="#1e40af" strokeWidth={1.5} />
-                  <Bar dataKey="Resolved" barSize={20} fill="#10B981" radius={[4, 4, 0, 0]} />
-                </ComposedChart>
-              </ResponsiveContainer>
+              {!mounted ? (
+                <div className="h-full w-full bg-slate-100 dark:bg-slate-800/40 animate-pulse rounded-xl" />
+              ) : (
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                  <ComposedChart data={ticketResponseData}>
+                    <CartesianGrid stroke="#f1f5f9" vertical={false} />
+                    <XAxis dataKey="month" fontSize={9} stroke="#94a3b8" tickLine={false} />
+                    <YAxis fontSize={9} stroke="#94a3b8" tickLine={false} />
+                    <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px' }} />
+                    <Legend wrapperStyle={{ fontSize: '9px', fontWeight: 'bold' }} />
+                    <Area type="monotone" dataKey="Raised" fill="#1e40af" fillOpacity={0.1} stroke="#1e40af" strokeWidth={1.5} isAnimationActive={false} />
+                    <Bar dataKey="Resolved" barSize={20} fill="#10B981" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
 
           {/* Sprint Velocity */}
-          <div className="lg:col-span-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm">
+          <div className="lg:col-span-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm min-w-0">
             <div className="pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Sprint Delivery Velocity</h3>
               <p className="text-[9px] text-slate-405 font-medium">Closed backlog deliverables index per sprint interval</p>
             </div>
             <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={deliveryVelocity}>
-                  <CartesianGrid stroke="#f1f5f9" vertical={false} />
-                  <XAxis dataKey="sprint" fontSize={9} stroke="#94a3b8" tickLine={false} />
-                  <YAxis fontSize={9} stroke="#94a3b8" tickLine={false} />
-                  <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px' }} />
-                  <Line type="monotone" dataKey="velocity" stroke="#0ea5e9" strokeWidth={2.5} dot={{ r: 4 }} name="Sprints closed index" />
-                </LineChart>
-              </ResponsiveContainer>
+              {!mounted ? (
+                <div className="h-full w-full bg-slate-100 dark:bg-slate-800/40 animate-pulse rounded-xl" />
+              ) : (
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                  <LineChart data={deliveryVelocity}>
+                    <CartesianGrid stroke="#f1f5f9" vertical={false} />
+                    <XAxis dataKey="sprint" fontSize={9} stroke="#94a3b8" tickLine={false} />
+                    <YAxis fontSize={9} stroke="#94a3b8" tickLine={false} />
+                    <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px' }} />
+                    <Line type="monotone" dataKey="velocity" stroke="#0ea5e9" strokeWidth={2.5} dot={{ r: 4 }} name="Sprints closed index" isAnimationActive={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
 

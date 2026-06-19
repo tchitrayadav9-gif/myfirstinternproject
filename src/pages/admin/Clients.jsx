@@ -204,8 +204,8 @@ const Clients = () => {
         </div>
       ) : filteredClients.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredClients.map((client) => {
-            const cliId = client._id || client.id;
+          {filteredClients.map((client, idx) => {
+            const cliId = client._id ? String(client._id) : (client.id ? String(client.id) : `cli-${idx}`);
             return (
               <div 
                 key={cliId}

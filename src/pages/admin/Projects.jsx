@@ -169,13 +169,13 @@ const Projects = () => {
                     <div key={idx} className="bg-white p-4 rounded-xl border border-slate-200 h-28 animate-pulse" />
                   ))
                 ) : stageProjects.length > 0 ? (
-                  stageProjects.map((project) => {
-                    const projId = project._id || project.id;
+                  stageProjects.map((project, idx) => {
+                    const projId = project._id ? String(project._id) : (project.id ? String(project.id) : `proj-${idx}`);
                     return (
                       <div 
                         key={projId}
                         onClick={() => openEditModal(project)}
-                        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 hover:border-[#1E40AF]/20 rounded-xl p-4 text-xs space-y-4 shadow-sm cursor-pointer group transition-all duration-300"
+                        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-855 hover:border-[#1E40AF]/20 rounded-xl p-4 text-xs space-y-4 shadow-sm cursor-pointer group transition-all duration-300"
                       >
                         <div className="flex justify-between items-center">
                           <span className="font-extrabold text-slate-800 dark:text-white group-hover:text-[#1E40AF] dark:group-hover:text-cyan-400 transition-colors truncate max-w-[130px]">

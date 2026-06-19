@@ -12,6 +12,7 @@ import { employeeService, clientService, projectService, ticketService, schedule
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState({
     totalEmployees: 0,
@@ -28,6 +29,7 @@ const Dashboard = () => {
   const [workProgressData, setWorkProgressData] = useState([]);
 
   useEffect(() => {
+    setMounted(true);
     const fetchStats = async () => {
       setIsLoading(true);
       try {
@@ -115,7 +117,7 @@ const Dashboard = () => {
     <div className="space-y-6">
       
       {/* Welcome Banner */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm text-left">
         <div className="text-left">
           <span className="text-[10px] text-[#1E40AF] dark:text-cyan-400 font-bold uppercase tracking-wider block">Avon Admin Portal</span>
           <h1 className="text-xl font-extrabold text-slate-900 dark:text-white mt-1">Welcome Back, Admin</h1>
@@ -170,16 +172,20 @@ const Dashboard = () => {
                 </div>
                 <TrendingUp className="w-4 h-4 text-blue-500" />
               </div>
-              <div className="h-52 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={productivityData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                    <XAxis dataKey="name" fontSize={9} stroke="#94a3b8" tickLine={false} />
-                    <YAxis fontSize={9} stroke="#94a3b8" tickLine={false} />
-                    <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px' }} />
-                    <Bar dataKey="Tasks" fill="#1E40AF" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+              <div className="h-52 w-full min-w-0">
+                {!mounted ? (
+                  <div className="h-full bg-slate-100 dark:bg-slate-800/40 animate-pulse rounded-xl" />
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                    <BarChart data={productivityData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                      <XAxis dataKey="name" fontSize={9} stroke="#94a3b8" tickLine={false} />
+                      <YAxis fontSize={9} stroke="#94a3b8" tickLine={false} />
+                      <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px' }} />
+                      <Bar dataKey="Tasks" fill="#1E40AF" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
               </div>
             </div>
 
@@ -192,16 +198,20 @@ const Dashboard = () => {
                 </div>
                 <TrendingUp className="w-4 h-4 text-cyan-500" />
               </div>
-              <div className="h-52 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={workProgressData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                    <XAxis dataKey="name" fontSize={9} stroke="#94a3b8" tickLine={false} />
-                    <YAxis fontSize={9} stroke="#94a3b8" tickLine={false} />
-                    <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px' }} />
-                    <Line type="monotone" dataKey="progress" stroke="#06B6D4" strokeWidth={2.5} name="Progress" dot={{ r: 4 }} />
-                  </LineChart>
-                </ResponsiveContainer>
+              <div className="h-52 w-full min-w-0">
+                {!mounted ? (
+                  <div className="h-full bg-slate-100 dark:bg-slate-800/40 animate-pulse rounded-xl" />
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                    <LineChart data={workProgressData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                      <XAxis dataKey="name" fontSize={9} stroke="#94a3b8" tickLine={false} />
+                      <YAxis fontSize={9} stroke="#94a3b8" tickLine={false} />
+                      <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px' }} />
+                      <Line type="monotone" dataKey="progress" stroke="#06B6D4" strokeWidth={2.5} name="Progress" dot={{ r: 4 }} isAnimationActive={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
               </div>
             </div>
 
@@ -225,10 +235,10 @@ const Dashboard = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {employees.slice(0, 4).map((emp, idx) => {
-                    const empId = emp._id || emp.id;
+                    const empId = emp._id ? String(emp._id) : (emp.id ? String(emp.id) : `emp-${idx}`);
                     const tasksCount = emp.tasks?.length || 0;
                     return (
-                      <tr key={empId || idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-850 transition-colors">
+                      <tr key={empId} className="hover:bg-slate-50/50 dark:hover:bg-slate-850 transition-colors">
                         <td className="py-3.5 px-6 font-bold text-slate-800 dark:text-white">{emp.name}</td>
                         <td className="py-3.5 px-6 font-semibold text-slate-500 dark:text-slate-400">{emp.department}</td>
                         <td className="py-3.5 px-6">
@@ -262,26 +272,31 @@ const Dashboard = () => {
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Tasks Progress Indices</h3>
             <p className="text-[9px] text-slate-405">Overall completion sprint balance</p>
           </div>
-          <div className="h-64 w-full flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={taskCompletionData}
-                  cx="50%"
-                  cy="45%"
-                  innerRadius={55}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {taskCompletionData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px' }} />
-                <Legend layout="horizontal" align="center" verticalAlign="bottom" wrapperStyle={{ fontSize: '9px', fontWeight: 'bold' }} />
-              </PieChart>
-            </ResponsiveContainer>
+          <div className="h-64 w-full flex items-center justify-center min-w-0">
+            {!mounted ? (
+              <div className="w-40 h-40 rounded-full border-8 border-slate-100 dark:border-slate-800/40 animate-pulse" />
+            ) : (
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                <PieChart>
+                  <Pie
+                    data={taskCompletionData}
+                    cx="50%"
+                    cy="45%"
+                    innerRadius={55}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                    isAnimationActive={false}
+                  >
+                    {taskCompletionData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px' }} />
+                  <Legend layout="horizontal" align="center" verticalAlign="bottom" wrapperStyle={{ fontSize: '9px', fontWeight: 'bold' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </div>
           <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-500 font-semibold space-y-2">
             <div className="flex justify-between">

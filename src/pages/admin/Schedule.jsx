@@ -215,9 +215,12 @@ const Schedule = () => {
               className="w-full bg-[#F8FAFC] dark:bg-slate-950 border border-slate-200 dark:border-slate-850 text-xs text-slate-700 dark:text-slate-350 rounded-xl px-3 py-2.5"
             >
               <option value="All">All Employees</option>
-              {employees.map(emp => (
-                <option key={emp._id || emp.id} value={emp._id || emp.id}>{emp.name}</option>
-              ))}
+              {employees.map((emp, idx) => {
+                const empId = emp._id ? String(emp._id) : (emp.id ? String(emp.id) : `emp-opt-${idx}`);
+                return (
+                  <option key={empId} value={empId}>{emp.name}</option>
+                );
+              })}
             </select>
           </div>
           <div className="space-y-1.5 w-48 shrink-0">
@@ -371,11 +374,14 @@ const Schedule = () => {
                     onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
                     className="w-full bg-[#F8FAFC] dark:bg-slate-955 border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl"
                   >
-                    {employees.map((emp) => (
-                      <option key={emp._id || emp.id} value={emp._id || emp.id}>
-                        {emp.name} ({emp.department})
-                      </option>
-                    ))}
+                    {employees.map((emp, idx) => {
+                      const empId = emp._id ? String(emp._id) : (emp.id ? String(emp.id) : `emp-opt-${idx}`);
+                      return (
+                        <option key={empId} value={empId}>
+                          {emp.name} ({emp.department})
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
 

@@ -35,9 +35,6 @@ app.use(express.urlencoded({ extended: false }));
 
 // Global database connection middleware for Serverless Function compatibility
 app.use(async (req, res, next) => {
-  if (req.path === '/api/status' || req.path === '/api/status/') {
-    return next();
-  }
   try {
     await connectDB();
     next();
@@ -47,14 +44,6 @@ app.use(async (req, res, next) => {
 });
 
 // Root route check
-app.get('/api/status', (req, res) => {
-  res.json({ 
-    status: 'success', 
-    message: 'Avon Status API is live.',
-    envKeys: Object.keys(process.env)
-  });
-});
-
 app.get('/', (req, res) => {
   res.json({ 
     status: 'success', 
@@ -78,8 +67,6 @@ const errorHandler = (err, req, res, next) => {
   console.error('Server error details:', err);
   res.status(statusCode).json({
     message: err.message,
-    path: req.path,
-    url: req.url,
     stack: process.env.NODE_ENV === 'production' ? null : err.stack
   });
 };

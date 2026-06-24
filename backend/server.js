@@ -78,6 +78,8 @@ const errorHandler = (err, req, res, next) => {
   console.error('Server error details:', err);
   res.status(statusCode).json({
     message: err.message,
+    path: req.path,
+    url: req.url,
     stack: process.env.NODE_ENV === 'production' ? null : err.stack
   });
 };

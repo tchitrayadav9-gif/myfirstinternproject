@@ -6,7 +6,7 @@ const UserSchema = {
   fullName: { type: String }, // User spec
   email: { type: String, required: true, unique: true },
   password: { type: String }, // Optional for Google OAuth users
-  role: { type: String, enum: ['Admin', 'Employee'], default: 'Employee' },
+  role: { type: String, enum: ['admin', 'employee'], default: 'employee' },
   department: { type: String },
   avatarUrl: { type: String },
   profileImage: { type: String }, // User spec

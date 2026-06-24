@@ -32,7 +32,7 @@ const AdminLayout = () => {
   };
 
   useEffect(() => {
-    if (user && user.role === 'Admin') {
+    if (user && user.role?.toLowerCase() === 'admin') {
       fetchNotifications();
       // Poll every 30 seconds for new messages
       const interval = setInterval(fetchNotifications, 30000);

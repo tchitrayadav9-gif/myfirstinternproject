@@ -11,8 +11,8 @@ export const AuthProvider = ({ children }) => {
   // Check token on startup
   useEffect(() => {
     const verifyToken = async () => {
-      const token = localStorage.getItem('avon_token');
-      const cachedUser = localStorage.getItem('avon_user');
+      const token = localStorage.getItem('token');
+      const cachedUser = localStorage.getItem('user');
       
       if (token && cachedUser) {
         try {
@@ -30,7 +30,9 @@ export const AuthProvider = ({ children }) => {
       try {
         const userData = await authService.getCurrentUser();
         setUser(userData);
-        localStorage.setItem('avon_user', JSON.stringify(userData));
+        localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem('role', userData.role);
+        localStorage.setItem('isLoggedIn', 'true');
         setIsAuthenticated(true);
       } catch (err) {
         console.error('Invalid token or session expired', err);
@@ -45,18 +47,24 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const data = await authService.login(email, password);
-      localStorage.setItem('avon_token', data.token);
-      localStorage.setItem('avon_user', JSON.stringify(data));
-      setUser({
-        id: data._id || data.id,
-        name: data.name,
-        email: data.email,
-        role: data.role,
-        department: data.department,
-        avatarUrl: data.avatarUrl
-      });
+      localStorage.setItem('token', data.token);
+      
+      const sessionUser = {
+        id: data.user?._id || data.user?.id || data._id || data.id,
+        name: data.user?.name || data.name,
+        email: data.user?.email || data.email,
+        role: data.user?.role || data.role,
+        department: data.user?.department || data.department,
+        avatarUrl: data.user?.avatarUrl || data.avatarUrl
+      };
+
+      localStorage.setItem('user', JSON.stringify(sessionUser));
+      localStorage.setItem('role', sessionUser.role);
+      localStorage.setItem('isLoggedIn', 'true');
+
+      setUser(sessionUser);
       setIsAuthenticated(true);
-      return { success: true, role: data.role };
+      return { success: true, role: sessionUser.role };
     } catch (err) {
       console.error('Login service failure:', err);
       const errorMsg = err.response?.data?.message || 'Connection to authentication service failed.';
@@ -67,18 +75,24 @@ export const AuthProvider = ({ children }) => {
   const register = async (name, email, password, role) => {
     try {
       const data = await authService.register(name, email, password, role);
-      localStorage.setItem('avon_token', data.token);
-      localStorage.setItem('avon_user', JSON.stringify(data));
-      setUser({
-        id: data._id || data.id,
-        name: data.name,
-        email: data.email,
-        role: data.role,
-        department: data.department,
-        avatarUrl: data.avatarUrl
-      });
+      localStorage.setItem('token', data.token);
+
+      const sessionUser = {
+        id: data.user?._id || data.user?.id || data._id || data.id,
+        name: data.user?.name || data.name,
+        email: data.user?.email || data.email,
+        role: data.user?.role || data.role,
+        department: data.user?.department || data.department,
+        avatarUrl: data.user?.avatarUrl || data.avatarUrl
+      };
+
+      localStorage.setItem('user', JSON.stringify(sessionUser));
+      localStorage.setItem('role', sessionUser.role);
+      localStorage.setItem('isLoggedIn', 'true');
+
+      setUser(sessionUser);
       setIsAuthenticated(true);
-      return { success: true, role: data.role };
+      return { success: true, role: sessionUser.role };
     } catch (err) {
       console.error('Registration service failure:', err);
       const errorMsg = err.response?.data?.message || 'Registration failed.';
@@ -89,8 +103,6 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setIsAuthenticated(false);
     setUser(null);
-    localStorage.removeItem('avon_token');
-    localStorage.removeItem('avon_user');
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('role');
@@ -100,7 +112,6 @@ export const AuthProvider = ({ children }) => {
   const updateUserProfile = (updatedData) => {
     const nextUser = user ? { ...user, ...updatedData } : updatedData;
     setUser(nextUser);
-    localStorage.setItem('avon_user', JSON.stringify(nextUser));
     localStorage.setItem('user', JSON.stringify(nextUser));
   };
 

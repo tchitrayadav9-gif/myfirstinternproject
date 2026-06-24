@@ -36,15 +36,13 @@ const Login = () => {
       
       if (response.success) {
         if (rememberMe) {
-          localStorage.setItem('avon_remember_email', email);
-          localStorage.setItem('avon_remember_password', password);
+          localStorage.setItem('rememberMe', email);
         } else {
-          localStorage.removeItem('avon_remember_email');
-          localStorage.removeItem('avon_remember_password');
+          localStorage.removeItem('rememberMe');
         }
 
         // Redirect based on role
-        if (response.role === 'Admin') {
+        if (response.role?.toLowerCase() === 'admin') {
           navigate('/dashboard');
         } else {
           navigate('/employee-dashboard');
@@ -62,16 +60,12 @@ const Login = () => {
 
 
 
-  // Pre-fill remember me email & password
+  // Pre-fill remember me email
   React.useEffect(() => {
-    const savedEmail = localStorage.getItem('avon_remember_email');
-    const savedPassword = localStorage.getItem('avon_remember_password');
+    const savedEmail = localStorage.getItem('rememberMe');
     if (savedEmail) {
       setEmail(savedEmail);
       setRememberMe(true);
-    }
-    if (savedPassword) {
-      setPassword(savedPassword);
     }
   }, []);
 

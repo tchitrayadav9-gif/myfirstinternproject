@@ -62,7 +62,7 @@ const createEmployee = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role: 'Employee',
+      role: 'employee',
       department,
       employeeId,
       avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=256&h=256'

@@ -21,7 +21,7 @@ const API = axios.create({
 // Configure Axios Request interceptor to dynamically inject the session JWT token 
 API.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('avon_token');
+    const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

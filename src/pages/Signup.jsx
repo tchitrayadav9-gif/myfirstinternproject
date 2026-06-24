@@ -9,7 +9,7 @@ const Signup = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState('Employee');
+  const [role, setRole] = useState('employee');
   const [error, setError] = useState('');
   const [isSigningUp, setIsSigningUp] = useState(false);
   
@@ -60,9 +60,7 @@ const Signup = () => {
       setIsSigningUp(false);
       
       if (response.success) {
-        localStorage.setItem('avon_remember_email', email);
-        localStorage.setItem('avon_remember_password', password);
-        if (response.role === 'Admin') {
+        if (response.role?.toLowerCase() === 'admin') {
           navigate('/dashboard');
         } else {
           navigate('/employee-dashboard');
@@ -169,11 +167,16 @@ const Signup = () => {
                   onChange={(e) => setRole(e.target.value)}
                   className="w-full bg-slate-950/80 border border-slate-850 hover:border-slate-800 focus:border-sky-500/50 text-xs text-slate-200 pl-10 pr-10 py-3 rounded-xl focus:outline-none transition-all appearance-none cursor-pointer"
                 >
-                  <option value="Employee" className="bg-slate-950 text-slate-200">Staff Employee (CSE - AIML, etc.)</option>
-                  <option value="Admin" className="bg-slate-950 text-slate-200">Portal Administrator</option>
+                  <option value="employee" className="bg-slate-950 text-slate-200">Employee</option>
+                  <option value="admin" className="bg-slate-950 text-slate-200">Administrator (Demo)</option>
                 </select>
                 <ChevronDown className="absolute right-3.5 top-3.5 w-4 h-4 text-slate-500 pointer-events-none" />
               </div>
+              {role === 'admin' && (
+                <p className="text-[10px] text-amber-500 mt-1.5 font-medium">
+                  This account will be created as a simulated Administrator account for demonstration purposes.
+                </p>
+              )}
             </div>
 
             {/* Password input */}

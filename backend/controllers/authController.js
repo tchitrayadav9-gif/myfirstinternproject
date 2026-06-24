@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const connectDB = require('../config/db');
 
 const generateToken = (id) => {
   return jwt.sign(
@@ -16,15 +17,22 @@ const generateToken = (id) => {
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
+  console.log('Login Started');
   try {
     if (!email || !password) {
       return res.status(400).json({ message: 'Please provide corporate email and password.' });
     }
 
+    console.log('Searching User');
+    console.log('Searching MongoDB...');
     const user = await User.findOne({ email });
     if (!user) {
+      console.log('User Not Found');
+      console.log('Database query result: null');
       return res.status(401).json({ message: 'Invalid credentials. User not found.' });
     }
+
+    console.log('User Found');
 
     // Accounts created without password cannot use this flow
     if (!user.password) {
@@ -34,17 +42,29 @@ const loginUser = async (req, res) => {
     // Verify password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      console.log('Password Mismatch');
       return res.status(401).json({ message: 'Invalid credentials. Password incorrect.' });
     }
 
+    console.log('Password Verified');
+    console.log('Password Match');
+
+    const token = generateToken(user._id || user.id);
+    console.log('JWT Generated');
+    console.log('Login Success');
+
     res.json({
-      _id: user._id || user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      department: user.department,
-      avatarUrl: user.avatarUrl,
-      token: generateToken(user._id || user.id)
+      success: true,
+      token,
+      user: {
+        _id: user._id || user.id,
+        id: user._id || user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        department: user.department,
+        avatarUrl: user.avatarUrl
+      }
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -58,10 +78,16 @@ const loginUser = async (req, res) => {
 const registerUser = async (req, res) => {
   const { name, email, password, role, department, avatarUrl } = req.body;
 
+  console.log('Signup Started');
   try {
+    await connectDB();
+    console.log('MongoDB Connected');
+
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Please provide name, email, and password.' });
     }
+
+    console.log('Validation Passed');
 
     const userExists = await User.findOne({ email });
     if (userExists) {
@@ -71,28 +97,47 @@ const registerUser = async (req, res) => {
     // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
+    console.log('Hash Created');
+
+    console.log('Saving User...');
+    // Normalize role to lowercase as per Task 4: Store: role = "admin", role = "employee"
+    const normalizedRole = (role && role.toLowerCase().includes('admin')) ? 'admin' : 'employee';
 
     const user = await User.create({
       name,
       email,
       password: hashedPassword,
-      role: role || 'Employee',
+      role: normalizedRole,
       department: department || 'Engineering',
       avatarUrl: avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=256&h=256'
     });
 
+    console.log('User Saved');
+
+    // Wait until MongoDB confirms insertion
+    const confirmedUser = await User.findById(user._id || user.id);
+    if (!confirmedUser) {
+      throw new Error('Database insertion verification failed.');
+    }
+
+    console.log('User Saved Successfully');
+    console.log('MongoDB ObjectId:', confirmedUser._id || confirmedUser.id);
+    console.log('Email:', confirmedUser.email);
+    console.log('Role:', confirmedUser.role);
+
     res.status(201).json({
-      _id: user._id || user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      department: user.department,
-      avatarUrl: user.avatarUrl,
-      token: generateToken(user._id || user.id) // Automatically log in on signup
+      success: true,
+      _id: confirmedUser._id || confirmedUser.id,
+      name: confirmedUser.name,
+      email: confirmedUser.email,
+      role: confirmedUser.role,
+      department: confirmedUser.department,
+      avatarUrl: confirmedUser.avatarUrl,
+      token: generateToken(confirmedUser._id || confirmedUser.id)
     });
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ message: 'Server error during user creation.' });
+    res.status(500).json({ message: `Server error during user creation: ${error.message}` });
   }
 };
 

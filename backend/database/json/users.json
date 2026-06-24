@@ -36,5 +36,15 @@
     "department": "Engineering",
     "avatarUrl": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=256&h=256",
     "createdAt": "2026-06-17T04:42:01.673Z"
+  },
+  {
+    "_id": "mqrxd0kx0xnel",
+    "name": "Test User",
+    "email": "test-1782296541995@avon.co.in",
+    "password": "$2a$10$.XWpfGD.DSUjuG7NW4t0MOdrT.EBuUk7vM4LvXhkMjftFf/qSK2WC",
+    "role": "Employee",
+    "department": "Engineering",
+    "avatarUrl": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=256&h=256",
+    "createdAt": "2026-06-24T10:22:52.209Z"
   }
 ]

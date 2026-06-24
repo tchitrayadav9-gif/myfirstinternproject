@@ -113,7 +113,7 @@ const RoleLayoutWrapper = () => {
 // Shared Support Page Wrapper
 const SupportWrapper = () => {
   const { user } = useAuth();
-  if (user?.role === 'Admin') {
+  if (user?.role?.toLowerCase() === 'admin') {
     return <AdminSupport />;
   }
   return <EmployeeSupport />;

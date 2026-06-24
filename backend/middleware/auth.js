@@ -38,7 +38,9 @@ const protect = async (req, res, next) => {
 
 const authorize = (...roles) => {
   return (req, res, next) => {
-    if (!req.user || !roles.includes(req.user.role)) {
+    const userRoleLower = req.user?.role?.toLowerCase();
+    const allowedRolesLower = roles.map(r => r.toLowerCase());
+    if (!req.user || !allowedRolesLower.includes(userRoleLower)) {
       return res.status(403).json({ 
         message: `Forbidden: Access restricted. Requires roles: [${roles.join(', ')}]. Current role: ${req.user ? req.user.role : 'none'}` 
       });

@@ -35,7 +35,7 @@ app.use(express.urlencoded({ extended: false }));
 
 // Global database connection middleware for Serverless Function compatibility
 app.use(async (req, res, next) => {
-  if (req.path === '/' || req.path === '/api' || req.path === '/api/') {
+  if (req.path === '/' || req.path === '/api' || req.path === '/api/' || req.path.includes('index.js')) {
     return next();
   }
   try {

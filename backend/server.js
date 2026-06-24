@@ -35,7 +35,7 @@ app.use(express.urlencoded({ extended: false }));
 
 // Global database connection middleware for Serverless Function compatibility
 app.use(async (req, res, next) => {
-  if (req.path === '/' || req.path === '/api' || req.path === '/api/' || req.path.includes('index.js')) {
+  if (req.path === '/api/status' || req.path === '/api/status/') {
     return next();
   }
   try {
@@ -47,12 +47,19 @@ app.use(async (req, res, next) => {
 });
 
 // Root route check
+app.get('/api/status', (req, res) => {
+  res.json({ 
+    status: 'success', 
+    message: 'Avon Status API is live.',
+    envKeys: Object.keys(process.env)
+  });
+});
+
 app.get('/', (req, res) => {
   res.json({ 
     status: 'success', 
     message: 'Avon Technologies Smart Portal API is live.',
-    database: global.useJsonDb ? 'Local JSON Fallback File DB' : 'MongoDB Connection Active',
-    envKeys: Object.keys(process.env)
+    database: global.useJsonDb ? 'Local JSON Fallback File DB' : 'MongoDB Connection Active'
   });
 });
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
@@ -6,8 +6,10 @@ import { useTheme } from '../context/ThemeContext';
 import { 
   LayoutDashboard, Users, CheckSquare, Calendar, FolderOpen, 
   Briefcase, BarChart3, HelpCircle, Settings, LogOut, Menu, X, 
-  ChevronLeft, ChevronRight, Sun, Moon, Bell, ShieldAlert
+  ChevronLeft, ChevronRight, Sun, Moon, Bell, ShieldAlert,
+  Check, Trash2, Clock
 } from 'lucide-react';
+import { contactService } from '../services/api';
 
 const AdminLayout = () => {
   const { user, logout } = useAuth();
@@ -17,6 +19,56 @@ const AdminLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  const fetchNotifications = async () => {
+    try {
+      const data = await contactService.getAll();
+      setNotifications(data);
+    } catch (err) {
+      console.error('Failed to load contact messages:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (user && user.role === 'Admin') {
+      fetchNotifications();
+      // Poll every 30 seconds for new messages
+      const interval = setInterval(fetchNotifications, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user]);
+
+  const handleMarkAsRead = async (id) => {
+    try {
+      await contactService.markAsRead(id);
+      fetchNotifications();
+    } catch (err) {
+      console.error('Failed to mark notification read:', err);
+    }
+  };
+
+  const handleDeleteNotification = async (id) => {
+    try {
+      await contactService.delete(id);
+      fetchNotifications();
+    } catch (err) {
+      console.error('Failed to delete notification:', err);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      const unread = notifications.filter(n => n.status === 'Unread');
+      await Promise.all(unread.map(n => contactService.markAsRead(n._id || n.id)));
+      fetchNotifications();
+    } catch (err) {
+      console.error('Failed to mark all read:', err);
+    }
+  };
+
+  const unreadCount = notifications.filter(n => n.status === 'Unread').length;
 
   const menuItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
@@ -204,10 +256,111 @@ const AdminLayout = () => {
 
             {/* Notification alert */}
             <div className="relative">
-              <button className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-850 hover:text-slate-700 dark:hover:text-white transition-colors">
+              <button 
+                onClick={() => {
+                  setShowNotifications(!showNotifications);
+                  setShowProfileMenu(false);
+                }}
+                className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-850 hover:text-slate-700 dark:hover:text-white transition-colors relative"
+                title="Notifications"
+              >
                 <Bell className="w-4 h-4" />
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 px-1 min-w-[14px] h-3.5 rounded-full bg-rose-600 text-[8px] font-extrabold text-white flex items-center justify-center border border-white dark:border-slate-900 animate-pulse">
+                    {unreadCount}
+                  </span>
+                )}
               </button>
+
+              <AnimatePresence>
+                {showNotifications && (
+                  <>
+                    <div className="fixed inset-0 z-30" onClick={() => setShowNotifications(false)} />
+                    <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl z-40 py-3 text-xs overflow-hidden">
+                      <div className="px-4 pb-2.5 border-b border-slate-150 dark:border-slate-800 flex justify-between items-center">
+                        <span className="font-extrabold text-slate-900 dark:text-white flex items-center space-x-1.5">
+                          <span>Contact Submissions</span>
+                          {unreadCount > 0 && (
+                            <span className="px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 text-[9px] font-black">
+                              {unreadCount} NEW
+                            </span>
+                          )}
+                        </span>
+                        {unreadCount > 0 && (
+                          <button 
+                            onClick={handleMarkAllRead}
+                            className="text-[10px] text-blue-600 dark:text-cyan-400 font-bold hover:underline"
+                          >
+                            Mark all read
+                          </button>
+                        )}
+                      </div>
+                      
+                      <div className="max-h-72 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+                        {notifications.length > 0 ? (
+                          notifications.map((notif) => {
+                            const notifId = notif._id || notif.id;
+                            const isUnread = notif.status === 'Unread';
+                            return (
+                              <div 
+                                key={notifId} 
+                                className={`p-4 flex flex-col space-y-1.5 transition-colors text-left hover:bg-slate-50 dark:hover:bg-slate-850/30 ${
+                                  isUnread ? 'bg-blue-50/15 dark:bg-cyan-500/5' : ''
+                                }`}
+                              >
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <span className="font-bold text-slate-900 dark:text-white">{notif.name}</span>
+                                    <span className="text-[10px] text-slate-550 ml-1.5">({notif.email})</span>
+                                  </div>
+                                  <div className="flex items-center space-x-1 shrink-0 ml-2" onClick={(e) => e.stopPropagation()}>
+                                    {isUnread && (
+                                      <button 
+                                        onClick={() => handleMarkAsRead(notifId)}
+                                        className="p-1 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded transition-colors"
+                                        title="Mark as Read"
+                                      >
+                                        <Check className="w-3.5 h-3.5" />
+                                      </button>
+                                    )}
+                                    <button 
+                                      onClick={() => handleDeleteNotification(notifId)}
+                                      className="p-1 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-rose-500 rounded transition-colors"
+                                      title="Delete Message"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                </div>
+                                
+                                <div className="text-slate-705 dark:text-slate-300 font-semibold text-[11px]">
+                                  {notif.subject}
+                                </div>
+                                
+                                <p className="text-slate-500 dark:text-slate-400 text-[11px] leading-relaxed break-words font-medium">
+                                  {notif.message}
+                                </p>
+                                
+                                <div className="flex justify-between items-center text-[9px] text-slate-400 dark:text-slate-500 font-mono mt-1">
+                                  <span className="flex items-center space-x-1">
+                                    <Clock className="w-3 h-3" />
+                                    <span>{new Date(notif.date).toLocaleString()}</span>
+                                  </span>
+                                  {isUnread && <span className="w-2 h-2 rounded-full bg-blue-600" />}
+                                </div>
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <div className="py-8 text-center text-slate-500 italic">
+                            No contact messages received.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Vertical Divider */}

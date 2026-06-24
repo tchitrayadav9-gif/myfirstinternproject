@@ -1,12 +1,36 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowRight, Users, Briefcase, Award, Zap, Shield, Sparkles, 
-  Terminal, Globe, TrendingUp, HelpCircle, CheckCircle2 
+  Terminal, Globe, TrendingUp, HelpCircle, CheckCircle2,
+  ChevronLeft, ChevronRight
 } from 'lucide-react';
 
 const Home = () => {
+  // Eager scan screenshots folder dynamically
+  const screenshotImages = import.meta.glob('/src/assets/screenshots/*.{png,jpg,jpeg,svg,webp}', { eager: true });
+  const imagePaths = Object.values(screenshotImages).map(img => img.default || img);
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(true);
+
+  useEffect(() => {
+    if (!isPlaying || imagePaths.length === 0) return;
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % imagePaths.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [isPlaying, imagePaths.length]);
+
+  const handlePrev = () => {
+    setCurrentIndex((prev) => (prev - 1 + imagePaths.length) % imagePaths.length);
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % imagePaths.length);
+  };
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -144,42 +168,80 @@ const Home = () => {
               {/* Decorative Frame */}
               <div className="absolute inset-0 bg-gradient-to-tr from-sky-500/10 to-indigo-500/10 rounded-3xl blur-2xl -z-10" />
               
-              {/* Code Editor Graphic / UI Mockup */}
-              <div className="glass-panel rounded-2xl overflow-hidden border border-slate-800/80 shadow-2xl glow-card">
+              {/* Screen Preview Slider Carousel */}
+              <div 
+                className="glass-panel rounded-2xl overflow-hidden border border-slate-800 shadow-2xl relative group bg-slate-900/60"
+                onMouseEnter={() => setIsPlaying(false)}
+                onMouseLeave={() => setIsPlaying(true)}
+              >
                 {/* Editor Header */}
                 <div className="bg-slate-950 px-4 py-3 border-b border-slate-800/60 flex items-center justify-between">
-                  <div className="flex space-x-1.5">
-                    <div className="w-3 h-3 rounded-full bg-rose-500" />
-                    <div className="w-3 h-3 rounded-full bg-amber-500" />
-                    <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                  <div className="flex space-x-1.5 shrink-0">
+                    <div className="w-2.5 h-2.5 rounded-full bg-rose-500" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
                   </div>
-                  <div className="text-[10px] text-slate-500 font-mono flex items-center space-x-1">
-                    <Terminal className="w-3.5 h-3.5 text-sky-500" />
-                    <span>avon-operations-feed.js</span>
+                  <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono flex items-center space-x-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                    <span>AVON PORTAL INTERFACE PREVIEW</span>
                   </div>
-                  <div className="w-4 h-4" />
+                  <span className="text-[9px] font-mono text-slate-500 shrink-0">
+                    {imagePaths.length > 0 ? `${currentIndex + 1} / ${imagePaths.length}` : '0 / 0'}
+                  </span>
                 </div>
-                {/* Editor Body */}
-                <div className="p-5 font-mono text-left text-xs leading-relaxed space-y-4 bg-slate-900/60">
-                  <div className="space-y-1">
-                    <span className="text-pink-400">const</span> <span className="text-sky-300">avonPortal</span> = &#123;
-                    <div className="pl-4"><span className="text-slate-400">company:</span> <span className="text-emerald-300">"Avon Technologies Pvt. Ltd."</span>,</div>
-                    <div className="pl-4"><span className="text-slate-400">location:</span> <span className="text-emerald-300">"Hyderabad, Telangana"</span>,</div>
-                    <div className="pl-4"><span className="text-slate-400">activeSprints:</span> <span className="text-amber-300">42</span>,</div>
-                    <div className="pl-4"><span className="text-slate-400">systemUptime:</span> <span className="text-emerald-400">"99.98%"</span></div>
-                    &#125;;
-                  </div>
-                  <div className="space-y-1 border-t border-slate-800/60 pt-3">
-                    <span className="text-purple-400">function</span> <span className="text-sky-300">onboardEmployee</span>(<span className="text-orange-300">staff</span>) &#123;
-                    <div className="pl-4"><span className="text-pink-400">return</span> <span className="text-sky-300">initializeSecureAccess</span>(staff.id)</div>
-                    <div className="pl-8">.<span className="text-sky-300">then</span>(() =&gt; <span className="text-emerald-400">"Staff synchronized successfully"</span>);</div>
-                    &#125;
-                  </div>
-                  <div className="border-t border-slate-800/60 pt-3 flex justify-between items-center text-[10px] text-sky-400">
-                    <span>// Ready to connect internal assets</span>
-                    <span className="bg-sky-500/10 px-2 py-0.5 rounded text-[9px] border border-sky-500/20">LIVE METRICS</span>
-                  </div>
+
+                {/* Slider viewport */}
+                <div className="relative h-64 sm:h-72 md:h-80 overflow-hidden flex items-center justify-center bg-slate-950">
+                  {imagePaths.length > 0 ? (
+                    <AnimatePresence mode="wait">
+                      <motion.img
+                        key={currentIndex}
+                        src={imagePaths[currentIndex]}
+                        alt={`Site Page Preview ${currentIndex + 1}`}
+                        initial={{ opacity: 0, x: 50 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -50 }}
+                        transition={{ duration: 0.4 }}
+                        className="w-full h-full object-cover select-none"
+                      />
+                    </AnimatePresence>
+                  ) : (
+                    <div className="text-slate-500 text-xs italic">No previews available.</div>
+                  )}
+
+                  {/* Navigation controls */}
+                  {imagePaths.length > 1 && (
+                    <>
+                      <button 
+                        onClick={handlePrev}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-950/60 border border-slate-800 text-white flex items-center justify-center hover:bg-slate-900 opacity-0 group-hover:opacity-100 transition-opacity focus:outline-none"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={handleNext}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-950/60 border border-slate-800 text-white flex items-center justify-center hover:bg-slate-900 opacity-0 group-hover:opacity-100 transition-opacity focus:outline-none"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </>
+                  )}
                 </div>
+
+                {/* Indicator dots */}
+                {imagePaths.length > 1 && (
+                  <div className="bg-slate-950 px-4 py-2.5 border-t border-slate-800/60 flex items-center justify-center space-x-1.5">
+                    {imagePaths.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentIndex(idx)}
+                        className={`h-1.5 rounded-full transition-all duration-300 ${
+                          currentIndex === idx ? 'w-5 bg-sky-500' : 'w-1.5 bg-slate-700 hover:bg-slate-500'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             </motion.div>
           </div>

@@ -1,4 +1,22 @@
+const bcrypt = require('bcryptjs');
 const Employee = require('../models/Employee');
+const User = require('../models/User');
+
+// Helper to generate a unique employee ID
+const generateEmployeeId = async () => {
+  const employees = await Employee.find({});
+  let maxId = 1000;
+  employees.forEach(emp => {
+    if (emp.employeeId && emp.employeeId.startsWith('AVON-EMP-')) {
+      const numPart = parseInt(emp.employeeId.replace('AVON-EMP-', ''), 10);
+      if (!isNaN(numPart) && numPart > maxId) {
+        maxId = numPart;
+      }
+    }
+  });
+  const nextNum = String(maxId + 1).padStart(4, '0');
+  return `AVON-EMP-${nextNum}`;
+};
 
 // @desc    Get all employees
 // @route   GET /api/employees
@@ -21,7 +39,7 @@ const createEmployee = async (req, res) => {
 
   try {
     if (!name || !email || !department || !role || !joinDate) {
-      return res.status(450).json({ message: 'Missing required employee fields.' });
+      return res.status(400).json({ message: 'Missing required employee fields.' });
     }
 
     const employeeExists = await Employee.findOne({ email });
@@ -29,7 +47,30 @@ const createEmployee = async (req, res) => {
       return res.status(400).json({ message: 'An employee with this email is already registered.' });
     }
 
+    // Auto-generate employeeId
+    const employeeId = await generateEmployeeId();
+
+    // Auto-generate secure temporary password
+    const tempPassword = `Avon@${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+    // Hash temporary password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(tempPassword, salt);
+
+    // Create corresponding User credentials record
+    await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      role: 'Employee',
+      department,
+      employeeId,
+      avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=256&h=256'
+    });
+
+    // Create Employee profile
     const employee = await Employee.create({
+      employeeId,
       name,
       email,
       department,
@@ -40,7 +81,10 @@ const createEmployee = async (req, res) => {
       tasks: []
     });
 
-    res.status(201).json(employee);
+    res.status(201).json({
+      employee,
+      tempPassword
+    });
   } catch (error) {
     console.error('Error creating employee:', error);
     res.status(500).json({ message: 'Server error registering new employee.' });
@@ -59,6 +103,8 @@ const updateEmployee = async (req, res) => {
       return res.status(404).json({ message: 'Employee record not found.' });
     }
 
+    const oldEmail = employee.email;
+
     const updated = await Employee.findByIdAndUpdate(
       req.params.id,
       {
@@ -72,6 +118,16 @@ const updateEmployee = async (req, res) => {
       },
       { new: true }
     );
+
+    // Sync with User collection
+    const user = await User.findOne({ email: oldEmail });
+    if (user) {
+      await User.findByIdAndUpdate(user._id || user.id, {
+        name: name || employee.name,
+        email: email || employee.email,
+        department: department || employee.department
+      });
+    }
 
     res.json(updated);
   } catch (error) {
@@ -88,6 +144,12 @@ const deleteEmployee = async (req, res) => {
     const employee = await Employee.findById(req.params.id);
     if (!employee) {
       return res.status(404).json({ message: 'Employee record not found.' });
+    }
+
+    // Delete corresponding User credentials record
+    const user = await User.findOne({ email: employee.email });
+    if (user) {
+      await User.findByIdAndDelete(user._id || user.id);
     }
 
     await Employee.findByIdAndDelete(req.params.id);

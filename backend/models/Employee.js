@@ -1,6 +1,7 @@
 const createModel = require('./modelHelper');
 
 const EmployeeSchema = {
+  employeeId: { type: String },
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   department: { type: String, required: true },

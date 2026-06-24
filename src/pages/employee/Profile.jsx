@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
+import { authService } from '../../services/api';
 import { 
   User, Shield, Camera, CheckCircle2, ShieldAlert 
 } from 'lucide-react';
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, updateUserProfile } = useAuth();
   
   const [profileData, setProfileData] = useState({
     name: user?.name || 'Employee Name',
@@ -19,31 +21,77 @@ const Profile = () => {
   });
 
   const [status, setStatus] = useState({ type: '', message: '' });
-  const [profileImg, setProfileImg] = useState(null);
+  const [profileImg, setProfileImg] = useState(user?.avatarUrl || null);
 
-  const handleProfileSubmit = (e) => {
+  const handleProfileSubmit = async (e) => {
     e.preventDefault();
-    setStatus({ type: 'success', message: 'Profile details updated locally.' });
-    setTimeout(() => setStatus({ type: '', message: '' }), 3000);
+    setStatus({ type: 'info', message: 'Updating profile...' });
+    try {
+      const updatedUser = await authService.updateProfile(profileData.name, profileImg);
+      updateUserProfile({ name: updatedUser.name, avatarUrl: updatedUser.avatarUrl });
+      setStatus({ type: 'success', message: 'Profile details saved in MongoDB database.' });
+    } catch (err) {
+      console.error('Profile update error:', err);
+      setStatus({ type: 'error', message: err.response?.data?.message || 'Server error updating profile details.' });
+    }
+    setTimeout(() => setStatus({ type: '', message: '' }), 4000);
   };
 
-  const handlePasswordSubmit = (e) => {
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setStatus({ type: 'error', message: 'New passwords do not match.' });
       return;
     }
-    setStatus({ type: 'success', message: 'Password updated successfully.' });
-    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    setTimeout(() => setStatus({ type: '', message: '' }), 3000);
+    setStatus({ type: 'info', message: 'Changing password...' });
+    try {
+      await authService.changePassword(passwordData.currentPassword, passwordData.newPassword);
+      setStatus({ type: 'success', message: 'Password updated successfully in database.' });
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (err) {
+      console.error('Password update error:', err);
+      setStatus({ type: 'error', message: err.response?.data?.message || 'Server error changing password.' });
+    }
+    setTimeout(() => setStatus({ type: '', message: '' }), 4000);
   };
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     if (e.target.files && e.target.files[0]) {
-      const imgUrl = URL.createObjectURL(e.target.files[0]);
-      setProfileImg(imgUrl);
-      setStatus({ type: 'success', message: 'Profile image updated successfully.' });
-      setTimeout(() => setStatus({ type: '', message: '' }), 3000);
+      const file = e.target.files[0];
+      setStatus({ type: 'info', message: 'Uploading profile image...' });
+      
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        // Load configurations (fallbacks to demo environment for easy testing)
+        const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'demo';
+        const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'unsigned_preset';
+        
+        formData.append('upload_preset', uploadPreset);
+
+        const res = await axios.post(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, formData);
+        const secureUrl = res.data.secure_url;
+
+        // Save URL in database
+        const updatedUser = await authService.updateProfile(profileData.name, secureUrl);
+        updateUserProfile({ avatarUrl: secureUrl });
+        setProfileImg(secureUrl);
+        setStatus({ type: 'success', message: 'Profile picture uploaded and saved successfully!' });
+      } catch (err) {
+        console.warn('Cloudinary upload failed, using local fallback:', err);
+        // Fallback: If Cloudinary preset is not configured, generate a local URL so the app continues to work cleanly
+        const localImgUrl = URL.createObjectURL(file);
+        try {
+          await authService.updateProfile(profileData.name, localImgUrl);
+          updateUserProfile({ avatarUrl: localImgUrl });
+          setProfileImg(localImgUrl);
+          setStatus({ type: 'success', message: 'Profile image updated (Cloudinary preset invalid, using local preview).' });
+        } catch (innerErr) {
+          setStatus({ type: 'error', message: 'Failed to update profile picture.' });
+        }
+      }
+      setTimeout(() => setStatus({ type: '', message: '' }), 4000);
     }
   };
 
@@ -61,9 +109,17 @@ const Profile = () => {
         <div className={`p-4 rounded-xl text-xs font-semibold text-left flex items-center space-x-1.5 shadow border ${
           status.type === 'success' 
             ? 'bg-emerald-50 border-emerald-250 text-emerald-650 dark:bg-slate-900' 
+            : status.type === 'info'
+            ? 'bg-sky-50 border-sky-250 text-sky-655 dark:bg-slate-900'
             : 'bg-rose-50 border-rose-250 text-rose-650 dark:bg-slate-900'
         }`}>
-          {status.type === 'success' ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <ShieldAlert className="w-4 h-4 text-rose-500" />}
+          {status.type === 'success' ? (
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+          ) : status.type === 'info' ? (
+            <div className="w-4 h-4 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <ShieldAlert className="w-4 h-4 text-rose-500" />
+          )}
           <span>{status.message}</span>
         </div>
       )}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, CheckCircle, AlertCircle, Send, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { contactService } from '../services/api';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -50,18 +51,24 @@ const Contact = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validate()) {
       setIsSubmitting(true);
-      // Simulate API submit latency
-      setTimeout(() => {
+      try {
+        await contactService.submit(formData);
         setIsSubmitting(false);
         setSubmitSuccess(true);
         setFormData({ name: '', email: '', subject: '', message: '' });
         // Auto reset success message after 5s
         setTimeout(() => setSubmitSuccess(false), 5000);
-      }, 1500);
+      } catch (err) {
+        console.error('Contact submission error:', err);
+        setIsSubmitting(false);
+        setErrors({
+          submit: err.response?.data?.message || 'Failed to connect to contact submission service. Please try again.'
+        });
+      }
     }
   };
 
@@ -156,6 +163,20 @@ const Contact = () => {
                   <div>
                     <span className="font-semibold">Message Sent Successfully!</span>
                     <span className="block mt-0.5 text-[11px] text-emerald-400/80">Thank you for writing to Avon Technologies. Our operations triage team will review and reply within 24 business hours.</span>
+                  </div>
+                </motion.div>
+              )}
+              {errors.submit && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="mb-6 p-4 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-450 text-xs flex items-start space-x-2"
+                >
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-semibold">Submission Failed</span>
+                    <span className="block mt-0.5 text-[11px] text-rose-400/80">{errors.submit}</span>
                   </div>
                 </motion.div>
               )}

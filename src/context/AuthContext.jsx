@@ -13,6 +13,17 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const verifyToken = async () => {
       const token = localStorage.getItem('avon_token');
+      const cachedUser = localStorage.getItem('avon_user');
+      
+      if (token && cachedUser) {
+        try {
+          setUser(JSON.parse(cachedUser));
+          setIsAuthenticated(true);
+        } catch (e) {
+          console.warn('Failed to parse cached user settings:', e);
+        }
+      }
+
       if (!token) {
         setLoading(false);
         return;
@@ -20,6 +31,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const userData = await authService.getCurrentUser();
         setUser(userData);
+        localStorage.setItem('avon_user', JSON.stringify(userData));
         setIsAuthenticated(true);
       } catch (err) {
         console.error('Invalid token or session expired', err);
@@ -117,8 +129,14 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('avon_user');
   };
 
+  const updateUserProfile = (updatedData) => {
+    const nextUser = user ? { ...user, ...updatedData } : updatedData;
+    setUser(nextUser);
+    localStorage.setItem('avon_user', JSON.stringify(nextUser));
+  };
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, register, loginWithGoogle, logout, loading }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, register, loginWithGoogle, logout, updateUserProfile, loading }}>
       {children}
     </AuthContext.Provider>
   );

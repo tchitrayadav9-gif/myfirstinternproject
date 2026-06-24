@@ -8,7 +8,11 @@ const UserSchema = {
   role: { type: String, enum: ['Admin', 'Employee'], default: 'Employee' },
   department: { type: String },
   avatarUrl: { type: String },
-  googleId: { type: String } // Stored for users authenticating via Google
+  employeeId: { type: String },
+  createdDate: { type: Date, default: Date.now },
+  lastLogin: { type: Date },
+  googleLogin: { type: Boolean, default: false },
+  googleId: { type: String }
 };
 
 // Seed data

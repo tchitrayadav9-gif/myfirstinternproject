@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { authService } from '../../services/api';
 import { 
   User, Shield, Moon, Sun, Bell, ShieldAlert, CheckCircle2 
 } from 'lucide-react';
 
 const Settings = () => {
-  const { user } = useAuth();
+  const { user, updateUserProfile } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
   const [profileData, setProfileData] = useState({
@@ -28,21 +29,36 @@ const Settings = () => {
 
   const [status, setStatus] = useState({ type: '', message: '' });
 
-  const handleProfileSubmit = (e) => {
+  const handleProfileSubmit = async (e) => {
     e.preventDefault();
-    setStatus({ type: 'success', message: 'Profile details updated locally.' });
-    setTimeout(() => setStatus({ type: '', message: '' }), 3000);
+    setStatus({ type: 'info', message: 'Updating profile...' });
+    try {
+      const updatedUser = await authService.updateProfile(profileData.name, user?.avatarUrl);
+      updateUserProfile({ name: updatedUser.name });
+      setStatus({ type: 'success', message: 'Profile details saved in MongoDB database.' });
+    } catch (err) {
+      console.error('Admin profile update error:', err);
+      setStatus({ type: 'error', message: err.response?.data?.message || 'Server error updating profile details.' });
+    }
+    setTimeout(() => setStatus({ type: '', message: '' }), 4000);
   };
 
-  const handlePasswordSubmit = (e) => {
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setStatus({ type: 'error', message: 'New passwords do not match.' });
       return;
     }
-    setStatus({ type: 'success', message: 'Password updated successfully.' });
-    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    setTimeout(() => setStatus({ type: '', message: '' }), 3000);
+    setStatus({ type: 'info', message: 'Changing password...' });
+    try {
+      await authService.changePassword(passwordData.currentPassword, passwordData.newPassword);
+      setStatus({ type: 'success', message: 'Password updated successfully in database.' });
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (err) {
+      console.error('Admin password update error:', err);
+      setStatus({ type: 'error', message: err.response?.data?.message || 'Server error changing password.' });
+    }
+    setTimeout(() => setStatus({ type: '', message: '' }), 4000);
   };
 
   return (
@@ -59,9 +75,17 @@ const Settings = () => {
         <div className={`p-4 rounded-xl text-xs font-semibold text-left flex items-center space-x-1.5 shadow border ${
           status.type === 'success' 
             ? 'bg-emerald-50 border-emerald-250 text-emerald-650 dark:bg-slate-900' 
+            : status.type === 'info'
+            ? 'bg-sky-50 border-sky-250 text-sky-655 dark:bg-slate-900'
             : 'bg-rose-50 border-rose-250 text-rose-650 dark:bg-slate-900'
         }`}>
-          {status.type === 'success' ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <ShieldAlert className="w-4 h-4 text-rose-500" />}
+          {status.type === 'success' ? (
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+          ) : status.type === 'info' ? (
+            <div className="w-4 h-4 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <ShieldAlert className="w-4 h-4 text-rose-500" />
+          )}
           <span>{status.message}</span>
         </div>
       )}
@@ -79,7 +103,7 @@ const Settings = () => {
             </h3>
             <form onSubmit={handleProfileSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
               <div className="space-y-1.5">
-                <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Full Name</label>
+                <label className="text-[10px] text-slate-505 font-bold uppercase tracking-wider">Full Name</label>
                 <input 
                   type="text"
                   value={profileData.name}
@@ -159,7 +183,7 @@ const Settings = () => {
           
           {/* Theme setting card */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 pb-2 border-b border-slate-100 dark:border-slate-805">Theme Customization</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 pb-2 border-b border-slate-100 dark:border-slate-850">Theme Customization</h3>
             <div className="flex justify-between items-center text-xs">
               <span className="font-semibold text-slate-600 dark:text-slate-400">Current Theme State</span>
               <button 
@@ -178,7 +202,7 @@ const Settings = () => {
               <Bell className="w-4 h-4 text-[#06B6D4]" />
               <span>Email Notifications</span>
             </h3>
-            <div className="space-y-4 text-xs font-semibold text-slate-600 dark:text-slate-400">
+            <div className="space-y-4 text-xs font-semibold text-slate-600 dark:text-slate-405">
               <div className="flex items-center justify-between">
                 <div>
                   <span className="block text-slate-800 dark:text-slate-200">Sprint Progress Updates</span>
@@ -207,7 +231,7 @@ const Settings = () => {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="block text-slate-800 dark:text-slate-200">Weekly System Digest</span>
+                  <span className="block text-slate-805 dark:text-slate-200">Weekly System Digest</span>
                   <span className="text-[10px] text-slate-450 font-normal">Send automated performance summaries.</span>
                 </div>
                 <input 

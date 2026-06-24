@@ -20,6 +20,9 @@ if (isConfigured) {
     const app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     googleProvider = new GoogleAuthProvider();
+    googleProvider.setCustomParameters({
+      prompt: 'select_account'
+    });
   } catch (err) {
     console.warn("Firebase initialization failed, using simulated fallback:", err.message);
   }

@@ -22,6 +22,9 @@ const Employees = () => {
   // Expanded employee details
   const [expandedId, setExpandedId] = useState(null);
 
+  const [createdEmpCredentials, setCreatedEmpCredentials] = useState(null);
+  const [isCredentialsModalOpen, setIsCredentialsModalOpen] = useState(false);
+
   // Form states
   const [formErrors, setFormErrors] = useState({});
   const [formData, setFormData] = useState({
@@ -81,10 +84,19 @@ const Employees = () => {
       const skillsArray = formData.skills
         ? formData.skills.split(',').map(s => s.trim()).filter(Boolean)
         : [];
-      await employeeService.create({ ...formData, skills: skillsArray });
+      const res = await employeeService.create({ ...formData, skills: skillsArray });
       setIsAddModalOpen(false);
       resetForm();
       fetchEmployees();
+      if (res && res.tempPassword) {
+        setCreatedEmpCredentials({
+          name: res.employee.name,
+          email: res.employee.email,
+          employeeId: res.employee.employeeId,
+          tempPassword: res.tempPassword
+        });
+        setIsCredentialsModalOpen(true);
+      }
     } catch (err) {
       console.error(err);
       setFormErrors({ server: err.response?.data?.message || 'Error occurred while saving.' });
@@ -800,6 +812,66 @@ const Employees = () => {
                   Delegate Sprint Task
                 </button>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Credentials Modal */}
+      <AnimatePresence>
+        {isCredentialsModalOpen && createdEmpCredentials && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsCredentialsModalOpen(false)}
+              className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white dark:bg-slate-900 border border-emerald-500/20 rounded-3xl w-full max-w-md p-6 relative z-10 space-y-4 shadow-2xl text-left"
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center space-x-1.5 text-emerald-600">
+                    <Check className="w-5 h-5" />
+                    <span>Associate Credentials Created</span>
+                  </h3>
+                  <p className="text-[10px] text-slate-505 mt-0.5">Please share these temporary sign-in credentials with the employee.</p>
+                </div>
+                <button onClick={() => setIsCredentialsModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="bg-slate-55 dark:bg-slate-950 p-4 rounded-2xl border border-slate-150 dark:border-slate-850 space-y-3 text-xs font-mono">
+                <div>
+                  <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold block">Employee Name</span>
+                  <span className="text-slate-800 dark:text-slate-200 font-semibold">{createdEmpCredentials.name}</span>
+                </div>
+                <div>
+                  <span className="text-[9px] uppercase tracking-wider text-slate-405 font-bold block">Employee ID</span>
+                  <span className="text-[#1E40AF] dark:text-cyan-400 font-bold">{createdEmpCredentials.employeeId}</span>
+                </div>
+                <div>
+                  <span className="text-[9px] uppercase tracking-wider text-slate-405 font-bold block">Login Email</span>
+                  <span className="text-slate-800 dark:text-slate-200 font-semibold">{createdEmpCredentials.email}</span>
+                </div>
+                <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
+                  <span className="text-[9px] uppercase tracking-wider text-rose-500 font-bold block">Temporary Password</span>
+                  <span className="text-rose-600 dark:text-rose-400 font-bold text-sm bg-rose-50 dark:bg-rose-950/20 px-2 py-0.5 rounded">{createdEmpCredentials.tempPassword}</span>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setIsCredentialsModalOpen(false)}
+                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-550 text-white font-bold rounded-xl transition-all shadow-md text-xs uppercase tracking-wider"
+              >
+                Done
+              </button>
             </motion.div>
           </div>
         )}

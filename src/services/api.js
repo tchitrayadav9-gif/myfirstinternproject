@@ -344,16 +344,14 @@ export const authService = {
     const users = loadStorage('avon_users', defaultUsers);
     let user = users.find(u => u.email.toLowerCase() === payload.email.toLowerCase());
     if (!user) {
-      user = {
-        _id: 'user-' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
-        name: payload.name,
-        email: payload.email,
-        googleId: payload.googleId,
-        role: payload.role || 'Employee',
-        department: payload.role === 'Admin' ? 'Operations & IT' : 'Operations',
-        avatarUrl: payload.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=256&h=256'
-      };
-      users.push(user);
+      throw { response: { data: { message: 'This Google account is not registered. Please Sign Up first to create your corporate credentials.' } } };
+    }
+    // Link googleId if not already linked
+    if (!user.googleId) {
+      user.googleId = payload.googleId;
+      if (payload.avatarUrl) {
+        user.avatarUrl = payload.avatarUrl;
+      }
       saveStorage('avon_users', users);
     }
     const token = 'fake-jwt-token-' + user._id;

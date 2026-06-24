@@ -49,9 +49,12 @@ const ProtectedRoute = ({ children, allowedRole }) => {
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
-
-  if (allowedRole && user?.role !== allowedRole) {
-    return user?.role === 'Admin' 
+  
+  const userRoleLower = user?.role?.toLowerCase();
+  const allowedRoleLower = allowedRole?.toLowerCase();
+  
+  if (allowedRole && userRoleLower !== allowedRoleLower) {
+    return userRoleLower === 'admin' 
       ? <Navigate to="/dashboard" replace /> 
       : <Navigate to="/employee-dashboard" replace />;
   }
@@ -72,7 +75,7 @@ const PublicRoute = ({ children }) => {
   }
   
   if (isAuthenticated) {
-    return user?.role === 'Admin' 
+    return user?.role?.toLowerCase() === 'admin' 
       ? <Navigate to="/dashboard" replace /> 
       : <Navigate to="/employee-dashboard" replace />;
   }
@@ -96,9 +99,11 @@ const RoleLayoutWrapper = () => {
     return <Navigate to="/login" replace />;
   }
   
-  if (user?.role === 'Admin') {
+  const userRoleLower = user?.role?.toLowerCase();
+  
+  if (userRoleLower === 'admin') {
     return <AdminLayout />;
-  } else if (user?.role === 'Employee') {
+  } else if (userRoleLower === 'employee') {
     return <EmployeeLayout />;
   } else {
     return <Navigate to="/login" replace />;

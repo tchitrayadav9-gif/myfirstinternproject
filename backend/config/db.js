@@ -4,6 +4,10 @@ global.useJsonDb = false;
 let isConnected = false;
 
 const connectDB = async () => {
+  if (global.useJsonDb) {
+    return;
+  }
+
   if (isConnected) {
     console.log('MongoDB: Using existing database connection cache.');
     return;
@@ -11,9 +15,9 @@ const connectDB = async () => {
 
   const mongoURI = process.env.MONGODB_URI;
   if (!mongoURI) {
-    const errorMsg = 'CRITICAL: MONGODB_URI is not set in environment. MongoDB Atlas connection is mandatory.';
-    console.error(errorMsg);
-    throw new Error('MONGODB_URI environment variable is missing.');
+    console.warn('WARNING: MONGODB_URI is not set in environment. Falling back to Local JSON database.');
+    global.useJsonDb = true;
+    return;
   }
 
   try {
@@ -22,8 +26,8 @@ const connectDB = async () => {
     isConnected = db.connections[0].readyState;
     console.log('MongoDB Connected successfully to Cloud Atlas.');
   } catch (err) {
-    console.error(`CRITICAL: Failed to connect to MongoDB Atlas (${err.message}).`);
-    throw err;
+    console.error(`CRITICAL: Failed to connect to MongoDB Atlas (${err.message}). Falling back to Local JSON database.`);
+    global.useJsonDb = true;
   }
 };
 

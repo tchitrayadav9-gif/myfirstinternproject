@@ -33,8 +33,15 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Connect database (asynchronous, doesn't block route configuration or export)
-connectDB();
+// Global database connection middleware for Serverless Function compatibility
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
 
 // Root route check
 app.get('/', (req, res) => {

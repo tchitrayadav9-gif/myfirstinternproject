@@ -175,7 +175,7 @@ const googleLogin = async (req, res) => {
   } catch (error) {
     console.error('CRITICAL ERROR during Backend Google Authentication:', error);
     res.status(500).json({ 
-      message: 'MongoDB connection failed or JWT generation failed.',
+      message: `Database or JWT Error: ${error.message}`,
       error: error.message 
     });
   }

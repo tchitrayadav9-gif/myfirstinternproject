@@ -137,18 +137,11 @@ export const AuthProvider = ({ children }) => {
       if (err.message && err.message.toLowerCase().includes('network error')) {
         errorMsg = 'Network error: Backend API unavailable.';
       } else if (err.response) {
-        if (err.response.status === 500) {
-          // Check if it's database connection or JWT issue
-          const msg = err.response.data?.message || '';
-          if (msg.toLowerCase().includes('mongodb') || msg.toLowerCase().includes('connection')) {
-            errorMsg = 'MongoDB connection failed.';
-          } else if (msg.toLowerCase().includes('jwt') || msg.toLowerCase().includes('token')) {
-            errorMsg = 'JWT generation failed.';
-          } else {
-            errorMsg = 'MongoDB connection failed or JWT generation failed.';
-          }
-        } else if (err.response.data?.message) {
-          errorMsg = err.response.data.message;
+        const msg = err.response.data?.message || err.response.data?.error || '';
+        if (msg) {
+          errorMsg = msg;
+        } else if (err.response.status === 500) {
+          errorMsg = 'MongoDB connection failed or JWT generation failed.';
         }
       }
       

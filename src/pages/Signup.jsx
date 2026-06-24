@@ -13,7 +13,7 @@ const Signup = () => {
   const [error, setError] = useState('');
   const [isSigningUp, setIsSigningUp] = useState(false);
   
-  const { register, loginWithGoogle } = useAuth();
+  const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleFormSubmit = async (e) => {

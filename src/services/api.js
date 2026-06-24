@@ -44,10 +44,6 @@ export const authService = {
     const res = await API.post('/auth/register', { name, email, password, role });
     return res.data;
   },
-  loginGoogle: async (payload) => {
-    const res = await API.post('/auth/google', payload);
-    return res.data;
-  },
   getCurrentUser: async () => {
     const res = await API.get('/auth/me');
     return res.data;

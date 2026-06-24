@@ -26,9 +26,9 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials. User not found.' });
     }
 
-    // Google-only users might not have a password
+    // Accounts created without password cannot use this flow
     if (!user.password) {
-      return res.status(400).json({ message: 'This account is registered via Google. Please use Continue with Google.' });
+      return res.status(400).json({ message: 'This account does not have a local password configured.' });
     }
 
     // Verify password
@@ -93,91 +93,6 @@ const registerUser = async (req, res) => {
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({ message: 'Server error during user creation.' });
-  }
-};
-
-// @desc    Google OAuth Sign-In / Sign-Up
-// @route   POST /api/auth/google
-// @access  Public
-const googleLogin = async (req, res) => {
-  const { uid, email, displayName, photoURL, role } = req.body;
-
-  console.log('---------------------------------------------------------');
-  console.log('Backend request received: POST /api/auth/google');
-  console.log('Request payload:', { uid, email, displayName, photoURL, role });
-
-  try {
-    if (!email || !uid) {
-      console.error('Backend: Google email or uid parameters are missing.');
-      return res.status(400).json({ message: 'Google authentication payload is missing parameters (email/uid).' });
-    }
-
-    // Connect & find user in MongoDB
-    console.log('Backend: Finding user in MongoDB for email:', email);
-    let user = await User.findOne({ email });
-    
-    if (user) {
-      console.log('Backend: MongoDB connected. User already exists. Updating lastLogin...');
-      user = await User.findByIdAndUpdate(
-        user._id || user.id,
-        {
-          lastLogin: new Date(),
-          googleLogin: true,
-          googleId: uid,
-          uid: uid,
-          provider: 'Google'
-        },
-        { new: true }
-      );
-      console.log('Backend: User lastLogin and google metadata updated.');
-    } else {
-      console.log('Backend: MongoDB connected. Creating new user...');
-      user = await User.create({
-        name: displayName || email.split('@')[0],
-        fullName: displayName || email.split('@')[0],
-        email,
-        googleId: uid,
-        uid: uid,
-        googleLogin: true,
-        role: role || 'Employee',
-        department: 'Operations',
-        avatarUrl: photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=256&h=256',
-        profileImage: photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=256&h=256',
-        provider: 'Google',
-        createdAt: new Date(),
-        lastLogin: new Date()
-      });
-      console.log('Backend: User successfully created in MongoDB.');
-    }
-
-    console.log('Backend: Generating JWT...');
-    const token = generateToken(user._id || user.id);
-    
-    console.log('Backend: JWT generated successfully.');
-    console.log('Backend: Google Login Process complete.');
-    console.log('---------------------------------------------------------');
-
-    res.json({
-      token,
-      user: {
-        _id: user._id || user.id,
-        id: user._id || user.id,
-        name: user.fullName || user.name,
-        fullName: user.fullName || user.name,
-        email: user.email,
-        role: user.role,
-        department: user.department || 'Operations',
-        avatarUrl: user.profileImage || user.avatarUrl,
-        profileImage: user.profileImage || user.avatarUrl,
-        provider: user.provider
-      }
-    });
-  } catch (error) {
-    console.error('CRITICAL ERROR during Backend Google Authentication:', error);
-    res.status(500).json({ 
-      message: `Database or JWT Error: ${error.message}`,
-      error: error.message 
-    });
   }
 };
 
@@ -267,9 +182,9 @@ const changePassword = async (req, res) => {
       return res.status(404).json({ message: 'User not found.' });
     }
 
-    // Google-only users might not have a password
+    // Accounts without password cannot use this flow
     if (!user.password) {
-      return res.status(400).json({ message: 'Accounts authenticated via Google cannot change passwords. Please log in with Google.' });
+      return res.status(400).json({ message: 'Passwords cannot be changed for accounts without an existing password.' });
     }
 
     const isMatch = await bcrypt.compare(currentPassword, user.password);
@@ -292,7 +207,6 @@ const changePassword = async (req, res) => {
 module.exports = {
   loginUser,
   registerUser,
-  googleLogin,
   getMe,
   updateProfile,
   changePassword

@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authService } from '../services/api';
-import { signInWithGoogle } from '../services/firebase';
 
 const AuthContext = createContext(null);
 
@@ -87,68 +86,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const loginWithGoogle = async (selectedRole = 'Employee') => {
-    try {
-      console.log('Firebase Login Popup initiated...');
-      const googleResult = await signInWithGoogle();
-      
-      if (!googleResult.success) {
-        console.warn('Firebase authentication failed or cancelled by the user.');
-        return { success: false, message: 'Firebase authentication failed.' };
-      }
-
-      console.log('Firebase Login Success');
-      console.log('Sending data to backend...');
-
-      // Map googleResult output to the requested backend parameters
-      const payload = {
-        uid: googleResult.user.googleId,
-        email: googleResult.user.email,
-        displayName: googleResult.user.name,
-        photoURL: googleResult.user.avatarUrl,
-        role: selectedRole
-      };
-
-      const data = await authService.loginGoogle(payload);
-      
-      console.log('Backend request received & processed.');
-      
-      // Save to localStorage according to spec
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      localStorage.setItem('role', data.user.role);
-      localStorage.setItem('isLoggedIn', 'true');
-
-      // Compatibility backup keys
-      localStorage.setItem('avon_token', data.token);
-      localStorage.setItem('avon_user', JSON.stringify(data.user));
-
-      setUser(data.user);
-      setIsAuthenticated(true);
-
-      console.log('Login successful. Session persisted.');
-      return { success: true, role: data.user.role };
-    } catch (err) {
-      console.error('Google login backend sync failed:', err);
-      
-      let errorMsg = 'Failed to sync Google account details with server.';
-      
-      // Spec: Proper messages for specific failure cases
-      if (err.message && err.message.toLowerCase().includes('network error')) {
-        errorMsg = 'Network error: Backend API unavailable.';
-      } else if (err.response) {
-        const msg = err.response.data?.message || err.response.data?.error || '';
-        if (msg) {
-          errorMsg = msg;
-        } else if (err.response.status === 500) {
-          errorMsg = 'MongoDB connection failed or JWT generation failed.';
-        }
-      }
-      
-      return { success: false, message: errorMsg };
-    }
-  };
-
   const logout = () => {
     setIsAuthenticated(false);
     setUser(null);
@@ -168,7 +105,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, register, loginWithGoogle, logout, updateUserProfile, loading }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, register, logout, updateUserProfile, loading }}>
       {children}
     </AuthContext.Provider>
   );

@@ -48,7 +48,8 @@ app.get('/', (req, res) => {
   res.json({ 
     status: 'success', 
     message: 'Avon Technologies Smart Portal API is live.',
-    database: global.useJsonDb ? 'Local JSON Fallback File DB' : 'MongoDB Connection Active'
+    database: global.useJsonDb ? 'Local JSON Fallback File DB' : 'MongoDB Connection Active',
+    envKeys: Object.keys(process.env)
   });
 });
 

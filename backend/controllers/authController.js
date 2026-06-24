@@ -100,44 +100,84 @@ const registerUser = async (req, res) => {
 // @route   POST /api/auth/google
 // @access  Public
 const googleLogin = async (req, res) => {
-  const { name, email, googleId, avatarUrl, role } = req.body;
+  const { uid, email, displayName, photoURL, role } = req.body;
+
+  console.log('---------------------------------------------------------');
+  console.log('Backend request received: POST /api/auth/google');
+  console.log('Request payload:', { uid, email, displayName, photoURL, role });
 
   try {
-    if (!email || !googleId) {
-      return res.status(400).json({ message: 'Google authentication payload is missing parameters.' });
+    if (!email || !uid) {
+      console.error('Backend: Google email or uid parameters are missing.');
+      return res.status(400).json({ message: 'Google authentication payload is missing parameters (email/uid).' });
     }
 
+    // Connect & find user in MongoDB
+    console.log('Backend: Finding user in MongoDB for email:', email);
     let user = await User.findOne({ email });
-
+    
     if (user) {
-      // User exists - associate googleId if not already present
-      if (!user.googleId) {
-        await User.findByIdAndUpdate(user._id || user.id, { googleId, avatarUrl: avatarUrl || user.avatarUrl });
-      }
+      console.log('Backend: MongoDB connected. User already exists. Updating lastLogin...');
+      user = await User.findByIdAndUpdate(
+        user._id || user.id,
+        {
+          lastLogin: new Date(),
+          googleLogin: true,
+          googleId: uid,
+          uid: uid,
+          provider: 'Google'
+        },
+        { new: true }
+      );
+      console.log('Backend: User lastLogin and google metadata updated.');
     } else {
-      // Create a new Google-integrated account
+      console.log('Backend: MongoDB connected. Creating new user...');
       user = await User.create({
-        name,
+        name: displayName || email.split('@')[0],
+        fullName: displayName || email.split('@')[0],
         email,
-        googleId,
+        googleId: uid,
+        uid: uid,
+        googleLogin: true,
         role: role || 'Employee',
         department: 'Operations',
-        avatarUrl: avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=256&h=256'
+        avatarUrl: photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=256&h=256',
+        profileImage: photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=256&h=256',
+        provider: 'Google',
+        createdAt: new Date(),
+        lastLogin: new Date()
       });
+      console.log('Backend: User successfully created in MongoDB.');
     }
 
+    console.log('Backend: Generating JWT...');
+    const token = generateToken(user._id || user.id);
+    
+    console.log('Backend: JWT generated successfully.');
+    console.log('Backend: Google Login Process complete.');
+    console.log('---------------------------------------------------------');
+
     res.json({
-      _id: user._id || user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      department: user.department,
-      avatarUrl: user.avatarUrl,
-      token: generateToken(user._id || user.id)
+      token,
+      user: {
+        _id: user._id || user.id,
+        id: user._id || user.id,
+        name: user.fullName || user.name,
+        fullName: user.fullName || user.name,
+        email: user.email,
+        role: user.role,
+        department: user.department || 'Operations',
+        avatarUrl: user.profileImage || user.avatarUrl,
+        profileImage: user.profileImage || user.avatarUrl,
+        provider: user.provider
+      }
     });
   } catch (error) {
-    console.error('Google login controller error:', error);
-    res.status(500).json({ message: 'Server error processing Google authentication.' });
+    console.error('CRITICAL ERROR during Backend Google Authentication:', error);
+    res.status(500).json({ 
+      message: 'MongoDB connection failed or JWT generation failed.',
+      error: error.message 
+    });
   }
 };
 

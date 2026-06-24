@@ -9,8 +9,24 @@ dotenv.config();
 const app = express();
 
 // Register Middleware
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://myfirstinternproject.vercel.app',
+  'https://avon-smart-portal.vercel.app'
+];
+
 app.use(cors({
-  origin: '*', // Allow frontend client requests
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (origin.startsWith('http://localhost:') || origin.endsWith('.vercel.app')) {
+      return callback(null, true);
+    }
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('CORS Policy: Origin not allowed.'), false);
+  },
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));

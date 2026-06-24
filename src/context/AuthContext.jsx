@@ -89,35 +89,69 @@ export const AuthProvider = ({ children }) => {
 
   const loginWithGoogle = async (selectedRole = 'Employee') => {
     try {
+      console.log('Firebase Login Popup initiated...');
       const googleResult = await signInWithGoogle();
+      
       if (!googleResult.success) {
-        return { success: false, message: 'Google authentication was cancelled.' };
+        console.warn('Firebase authentication failed or cancelled by the user.');
+        return { success: false, message: 'Firebase authentication failed.' };
       }
 
+      console.log('Firebase Login Success');
+      console.log('Sending data to backend...');
+
+      // Map googleResult output to the requested backend parameters
       const payload = {
-        name: googleResult.user.name,
+        uid: googleResult.user.googleId,
         email: googleResult.user.email,
-        googleId: googleResult.user.googleId,
-        avatarUrl: googleResult.user.avatarUrl,
+        displayName: googleResult.user.name,
+        photoURL: googleResult.user.avatarUrl,
         role: selectedRole
       };
 
       const data = await authService.loginGoogle(payload);
+      
+      console.log('Backend request received & processed.');
+      
+      // Save to localStorage according to spec
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('role', data.user.role);
+      localStorage.setItem('isLoggedIn', 'true');
+
+      // Compatibility backup keys
       localStorage.setItem('avon_token', data.token);
-      localStorage.setItem('avon_user', JSON.stringify(data));
-      setUser({
-        id: data._id || data.id,
-        name: data.name,
-        email: data.email,
-        role: data.role,
-        department: data.department,
-        avatarUrl: data.avatarUrl
-      });
+      localStorage.setItem('avon_user', JSON.stringify(data.user));
+
+      setUser(data.user);
       setIsAuthenticated(true);
-      return { success: true, role: data.role };
+
+      console.log('Login successful. Session persisted.');
+      return { success: true, role: data.user.role };
     } catch (err) {
       console.error('Google login backend sync failed:', err);
-      const errorMsg = err.response?.data?.message || 'Failed to sync Google account details with server.';
+      
+      let errorMsg = 'Failed to sync Google account details with server.';
+      
+      // Spec: Proper messages for specific failure cases
+      if (err.message && err.message.toLowerCase().includes('network error')) {
+        errorMsg = 'Network error: Backend API unavailable.';
+      } else if (err.response) {
+        if (err.response.status === 500) {
+          // Check if it's database connection or JWT issue
+          const msg = err.response.data?.message || '';
+          if (msg.toLowerCase().includes('mongodb') || msg.toLowerCase().includes('connection')) {
+            errorMsg = 'MongoDB connection failed.';
+          } else if (msg.toLowerCase().includes('jwt') || msg.toLowerCase().includes('token')) {
+            errorMsg = 'JWT generation failed.';
+          } else {
+            errorMsg = 'MongoDB connection failed or JWT generation failed.';
+          }
+        } else if (err.response.data?.message) {
+          errorMsg = err.response.data.message;
+        }
+      }
+      
       return { success: false, message: errorMsg };
     }
   };
@@ -127,12 +161,17 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     localStorage.removeItem('avon_token');
     localStorage.removeItem('avon_user');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('role');
+    localStorage.removeItem('isLoggedIn');
   };
 
   const updateUserProfile = (updatedData) => {
     const nextUser = user ? { ...user, ...updatedData } : updatedData;
     setUser(nextUser);
     localStorage.setItem('avon_user', JSON.stringify(nextUser));
+    localStorage.setItem('user', JSON.stringify(nextUser));
   };
 
   return (

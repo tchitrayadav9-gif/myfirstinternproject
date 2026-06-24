@@ -3,16 +3,21 @@ const createModel = require('./modelHelper');
 
 const UserSchema = {
   name: { type: String, required: true },
+  fullName: { type: String }, // User spec
   email: { type: String, required: true, unique: true },
   password: { type: String }, // Optional for Google OAuth users
   role: { type: String, enum: ['Admin', 'Employee'], default: 'Employee' },
   department: { type: String },
   avatarUrl: { type: String },
+  profileImage: { type: String }, // User spec
   employeeId: { type: String },
   createdDate: { type: Date, default: Date.now },
+  createdAt: { type: Date, default: Date.now }, // User spec
   lastLogin: { type: Date },
   googleLogin: { type: Boolean, default: false },
-  googleId: { type: String }
+  googleId: { type: String },
+  uid: { type: String }, // User spec
+  provider: { type: String, default: 'Credentials' } // User spec
 };
 
 // Seed data

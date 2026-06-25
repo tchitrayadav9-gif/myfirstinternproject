@@ -55,6 +55,10 @@ export const authService = {
   changePassword: async (currentPassword, newPassword) => {
     const res = await API.put('/auth/password', { currentPassword, newPassword });
     return res.data;
+  },
+  getDashboardStats: async () => {
+    const res = await API.get('/auth/dashboard-stats');
+    return res.data;
   }
 };
 

@@ -8,7 +8,7 @@ import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
   ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line
 } from 'recharts';
-import { employeeService, clientService, projectService, ticketService, scheduleService } from '../../services/api';
+import { authService } from '../../services/api';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -33,13 +33,14 @@ const Dashboard = () => {
     const fetchStats = async () => {
       setIsLoading(true);
       try {
-        const [empData, clientData, projData, ticketData, schData] = await Promise.all([
-          employeeService.getAll(),
-          clientService.getAll(),
-          projectService.getAll(),
-          ticketService.getAll(),
-          scheduleService.getAll()
-        ]);
+        const dashboardStats = await authService.getDashboardStats();
+        const {
+          employees: empData = [],
+          clients: clientData = [],
+          projects: projData = [],
+          tickets: ticketData = [],
+          schedules: schData = []
+        } = dashboardStats;
 
         setEmployees(empData);
 

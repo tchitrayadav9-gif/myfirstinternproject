@@ -249,10 +249,44 @@ const changePassword = async (req, res) => {
   }
 };
 
+// @desc    Get consolidated dashboard metrics
+// @route   GET /api/auth/dashboard-stats
+// @access  Private
+const getDashboardStats = async (req, res) => {
+  try {
+    const Employee = require('../models/Employee');
+    const Client = require('../models/Client');
+    const Project = require('../models/Project');
+    const Ticket = require('../models/Ticket');
+    const Schedule = require('../models/Schedule');
+
+    // Fetch all collections in parallel
+    const [employees, clients, projects, tickets, schedules] = await Promise.all([
+      Employee.find({}),
+      Client.find({}),
+      Project.find({}),
+      Ticket.find({}),
+      Schedule.find({})
+    ]);
+
+    res.json({
+      employees,
+      clients,
+      projects,
+      tickets,
+      schedules
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard statistics:', error);
+    res.status(500).json({ message: 'Server error fetching consolidated dashboard stats.' });
+  }
+};
+
 module.exports = {
   loginUser,
   registerUser,
   getMe,
   updateProfile,
-  changePassword
+  changePassword,
+  getDashboardStats
 };

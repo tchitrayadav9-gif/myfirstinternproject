@@ -1,12 +1,12 @@
 const axios = require('axios');
 
-const baseUrl = 'http://localhost:5000/api/auth';
+const baseUrl = 'https://avon-smart-portal.vercel.app/api/auth';
 
 async function runTest() {
   const email = `test-${Date.now()}@avon.co.in`;
   const password = 'Password123';
   const name = 'Test User';
-  const role = 'Employee';
+  const role = 'employee';
 
   console.log('Testing Signup...');
   try {

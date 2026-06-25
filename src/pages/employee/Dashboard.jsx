@@ -4,7 +4,7 @@ import {
   CheckCircle, Clock, AlertTriangle, Calendar, Award, 
   Briefcase, CheckSquare, ChevronRight, UserCircle
 } from 'lucide-react';
-import { employeeService, projectService, scheduleService } from '../../services/api';
+import { authService } from '../../services/api';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -25,11 +25,12 @@ const Dashboard = () => {
       if (!user) return;
       setIsLoading(true);
       try {
-        const [empData, projData, schData] = await Promise.all([
-          employeeService.getAll(),
-          projectService.getAll(),
-          scheduleService.getAll()
-        ]);
+        const dashboardStats = await authService.getDashboardStats();
+        const {
+          employees: empData = [],
+          projects: projData = [],
+          schedules: schData = []
+        } = dashboardStats;
 
         // Find matching employee by email
         const matchedEmp = empData.find(e => e.email.toLowerCase() === user.email.toLowerCase());

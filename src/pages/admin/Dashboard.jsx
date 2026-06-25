@@ -42,7 +42,19 @@ const Dashboard = () => {
           schedules: schData = []
         } = dashboardStats;
 
-        setEmployees(empData);
+        // Check if database is empty to enable simulated/demo state
+        const isDbEmpty = empData.length === 0;
+
+        let displayEmployees = empData;
+        if (isDbEmpty) {
+          displayEmployees = [
+            { _id: 'mock-1', name: 'Alex Johnson', department: 'Engineering', tasks: [1, 2, 3], status: 'Active' },
+            { _id: 'mock-2', name: 'Sarah Connor', department: 'Product Design', tasks: [1, 2], status: 'Active' },
+            { _id: 'mock-3', name: 'John Doe', department: 'Marketing', tasks: [1], status: 'On Leave' },
+            { _id: 'mock-4', name: 'Emily Davis', department: 'QA Engineering', tasks: [1, 2], status: 'Active' }
+          ];
+        }
+        setEmployees(displayEmployees);
 
         // Calculate tasks counts
         let pending = 0;
@@ -61,12 +73,12 @@ const Dashboard = () => {
         }
 
         setStats({
-          totalEmployees: empData.length,
-          activeProjects: projData.filter(p => p.status !== 'Delivered').length,
+          totalEmployees: isDbEmpty ? 8 : empData.length,
+          activeProjects: isDbEmpty ? 4 : projData.filter(p => p.status !== 'Delivered').length,
           pendingTasks: pending,
           completedTasks: completed,
-          scheduleCount: schData.length,
-          totalClients: clientData.length
+          scheduleCount: isDbEmpty ? 11 : schData.length,
+          totalClients: isDbEmpty ? 6 : clientData.length
         });
 
         // 1. Employee productivity (Bar chart)
@@ -148,14 +160,14 @@ const Dashboard = () => {
           const Icon = kpi.icon;
           return (
             <div key={idx} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm text-left relative overflow-hidden group hover:border-[#1E40AF]/30 transition-all duration-300">
-              <div className="flex justify-between items-start">
-                <div className="space-y-1">
+              <div className="flex justify-between items-start gap-2">
+                <div className="space-y-1 min-w-0 flex-1">
                   <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block truncate">{kpi.label}</span>
                   <span className="text-xl font-extrabold text-slate-900 dark:text-white block">
                     {isLoading ? '...' : kpi.value}
                   </span>
                 </div>
-                <div className={`w-9 h-9 rounded-xl ${kpi.color} dark:bg-slate-800 flex items-center justify-center`}>
+                <div className={`w-9 h-9 rounded-xl ${kpi.color} dark:bg-slate-800 flex items-center justify-center shrink-0`}>
                   <Icon className="w-4 h-4" />
                 </div>
               </div>

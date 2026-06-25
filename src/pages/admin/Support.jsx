@@ -15,15 +15,46 @@ const Support = () => {
     setIsLoading(true);
     try {
       const data = await ticketService.getAll();
-      setTickets(data);
-      // Select the first ticket by default if none selected
-      if (data.length > 0 && !selectedTicket) {
-        setSelectedTicket(data[0]);
-      } else if (data.length > 0 && selectedTicket) {
-        // Refresh the selected ticket reference
-        const updatedSelected = data.find(t => (t._id || t.id) === (selectedTicket._id || selectedTicket.id));
-        if (updatedSelected) {
-          setSelectedTicket(updatedSelected);
+      if (data.length === 0) {
+        const mockTickets = [
+          {
+            _id: 'mock-t1',
+            id: 'mock-t1',
+            name: 'Alex Johnson',
+            email: 'alex.johnson@avon.co.in',
+            subject: 'Docker Container Network Resolution Issue',
+            message: 'My Docker containers are unable to resolve the MongoDB Atlas connection SRV records locally. Standard lookup is returning connection refused. Can you look at my DNS configuration?',
+            status: 'Pending',
+            createdAt: '2026-06-25T10:00:00.000Z',
+            replies: []
+          },
+          {
+            _id: 'mock-t2',
+            id: 'mock-t2',
+            name: 'Sarah Connor',
+            email: 'sarah.connor@avon.co.in',
+            subject: 'Figma Dev Mode License Expiry',
+            message: 'My Figma developer mode license has expired. I need access to inspect the newly designed glassmorphism dashboard elements. Please renew.',
+            status: 'Resolved',
+            createdAt: '2026-06-24T08:30:00.000Z',
+            replies: [
+              { message: 'License renewed for 12 months. Please verify access.', sender: 'Admin', createdAt: '2026-06-24T09:15:00.000Z' }
+            ]
+          }
+        ];
+        setTickets(mockTickets);
+        if (!selectedTicket) {
+          setSelectedTicket(mockTickets[0]);
+        }
+      } else {
+        setTickets(data);
+        if (data.length > 0 && !selectedTicket) {
+          setSelectedTicket(data[0]);
+        } else if (data.length > 0 && selectedTicket) {
+          const updatedSelected = data.find(t => (t._id || t.id) === (selectedTicket._id || selectedTicket.id));
+          if (updatedSelected) {
+            setSelectedTicket(updatedSelected);
+          }
         }
       }
     } catch (err) {

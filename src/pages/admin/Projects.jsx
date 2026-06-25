@@ -32,7 +32,16 @@ const Projects = () => {
     setIsLoading(true);
     try {
       const data = await projectService.getAll();
-      setProjectList(data);
+      if (data.length === 0) {
+        setProjectList([
+          { _id: 'mock-p1', name: 'Cloud Migration Pipeline', client: 'Nexus Ventures', status: 'In Progress', priority: 'High', due: '2026-08-31' },
+          { _id: 'mock-p2', name: 'UI Redesign & Theming', client: 'Hooli Inc', status: 'In Progress', priority: 'Medium', due: '2026-07-31' },
+          { _id: 'mock-p3', name: 'BERT Helpdesk Integration', client: 'Raviga Capital', status: 'Backlog', priority: 'High', due: '2026-09-15' },
+          { _id: 'mock-p4', name: 'SSL Certificate Automation', client: 'Initech Corp', status: 'Delivered', priority: 'Low', due: '2026-06-25' }
+        ]);
+      } else {
+        setProjectList(data);
+      }
     } catch (err) {
       console.error('Failed to load projects:', err);
     } finally {

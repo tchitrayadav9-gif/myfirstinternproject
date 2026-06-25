@@ -34,7 +34,16 @@ const Clients = () => {
     setIsLoading(true);
     try {
       const data = await clientService.getAll();
-      setClients(data);
+      if (data.length === 0) {
+        setClients([
+          { _id: 'mock-c1', company: 'Nexus Ventures', contact: 'Richard Hendricks', email: 'richard@nexus.com', phone: '+1-555-0199', location: 'San Francisco, USA', status: 'Active' },
+          { _id: 'mock-c2', company: 'Hooli Inc', contact: 'Gavin Belson', email: 'gavin@hooli.com', phone: '+1-555-0182', location: 'Palo Alto, USA', status: 'Active' },
+          { _id: 'mock-c3', company: 'Raviga Capital', contact: 'Laurie Bream', email: 'laurie@raviga.com', phone: '+1-555-0177', location: 'Silicon Valley, USA', status: 'Active' },
+          { _id: 'mock-c4', company: 'Initech Corp', contact: 'Peter Gibbons', email: 'peter@initech.com', phone: '+1-555-0164', location: 'Austin, USA', status: 'Inactive' }
+        ]);
+      } else {
+        setClients(data);
+      }
     } catch (err) {
       console.error('Failed to load clients:', err);
     } finally {

@@ -39,11 +39,36 @@ const Schedule = () => {
         scheduleService.getAll(),
         employeeService.getAll()
       ]);
-      setSchedules(schData);
-      setEmployees(empData);
 
-      if (empData.length > 0) {
-        setFormData(prev => ({ ...prev, employeeId: empData[0]._id || empData[0].id }));
+      let displaySchedules = schData;
+      let displayEmployees = empData;
+
+      if (displayEmployees.length === 0) {
+        displayEmployees = [
+          { _id: 'mock-1', id: 'mock-1', employeeId: 'AVON-EMP-1001', name: 'Alex Johnson', department: 'AI Solutions', role: 'Senior Web Developer' },
+          { _id: 'mock-2', id: 'mock-2', employeeId: 'AVON-EMP-1002', name: 'Sarah Connor', department: 'UI/UX Design', role: 'Lead UI/UX Designer' },
+          { _id: 'mock-3', id: 'mock-3', employeeId: 'AVON-EMP-1003', name: 'John Doe', department: 'AI Solutions', role: 'AIML Engineer' },
+          { _id: 'mock-4', id: 'mock-4', employeeId: 'AVON-EMP-1004', name: 'Emily Davis', department: 'Support Operations', role: 'Operations Lead' }
+        ];
+        setEmployees(displayEmployees);
+      } else {
+        setEmployees(empData);
+      }
+
+      if (displaySchedules.length === 0) {
+        displaySchedules = [
+          { _id: 'mock-s1', employeeId: 'mock-1', employeeName: 'Alex Johnson', date: '2026-06-26', taskTitle: 'Refactor Auth Interceptor', deadline: '2026-07-01', status: 'Pending' },
+          { _id: 'mock-s2', employeeId: 'mock-1', employeeName: 'Alex Johnson', date: '2026-06-27', taskTitle: 'Setup Atlas VPC Peering', deadline: '2026-07-05', status: 'Pending' },
+          { _id: 'mock-s3', employeeId: 'mock-2', employeeName: 'Sarah Connor', date: '2026-06-28', taskTitle: 'Design Glassmorphism Dashboard Layout', deadline: '2026-06-28', status: 'Pending' },
+          { _id: 'mock-s4', employeeId: 'mock-4', employeeName: 'Emily Davis', date: '2026-06-29', taskTitle: 'Setup SSL certificates', deadline: '2026-06-25', status: 'Pending' }
+        ];
+        setSchedules(displaySchedules);
+      } else {
+        setSchedules(schData);
+      }
+
+      if (displayEmployees.length > 0) {
+        setFormData(prev => ({ ...prev, employeeId: displayEmployees[0]._id || displayEmployees[0].id }));
       }
     } catch (err) {
       console.error('Failed to load scheduling data:', err);

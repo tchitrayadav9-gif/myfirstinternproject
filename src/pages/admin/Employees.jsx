@@ -52,7 +52,76 @@ const Employees = () => {
     setIsLoading(true);
     try {
       const data = await employeeService.getAll();
-      setEmployees(data);
+      if (data.length === 0) {
+        setEmployees([
+          {
+            _id: 'mock-1',
+            id: 'mock-1',
+            employeeId: 'AVON-EMP-1001',
+            name: 'Alex Johnson',
+            email: 'alex.johnson@avon.co.in',
+            department: 'AI Solutions',
+            role: 'Senior Web Developer',
+            joinDate: '2025-01-15',
+            status: 'Active',
+            skills: ['React', 'Node.js', 'Express', 'MongoDB'],
+            tasks: [
+              { title: 'Refactor Auth Interceptor', deadline: '2026-07-01', priority: 'High', status: 'Completed' },
+              { title: 'Setup Atlas VPC Peering', deadline: '2026-07-05', priority: 'Medium', status: 'Pending' },
+              { title: 'Audit Session Tokens Cache', deadline: '2026-06-30', priority: 'High', status: 'Pending' }
+            ]
+          },
+          {
+            _id: 'mock-2',
+            id: 'mock-2',
+            employeeId: 'AVON-EMP-1002',
+            name: 'Sarah Connor',
+            email: 'sarah.connor@avon.co.in',
+            department: 'UI/UX Design',
+            role: 'Lead UI/UX Designer',
+            joinDate: '2025-03-10',
+            status: 'Active',
+            skills: ['Figma', 'Sketch', 'Tailwind CSS', 'Wireframing'],
+            tasks: [
+              { title: 'Design Glassmorphism Dashboard Layout', deadline: '2026-06-28', priority: 'High', status: 'Completed' },
+              { title: 'Create Client Portal Mockup V2', deadline: '2026-07-10', priority: 'Medium', status: 'Pending' }
+            ]
+          },
+          {
+            _id: 'mock-3',
+            id: 'mock-3',
+            employeeId: 'AVON-EMP-1003',
+            name: 'John Doe',
+            email: 'john.doe@avon.co.in',
+            department: 'AI Solutions',
+            role: 'AIML Engineer',
+            joinDate: '2025-06-01',
+            status: 'On Leave',
+            skills: ['Python', 'TensorFlow', 'NLP', 'PyTorch'],
+            tasks: [
+              { title: 'Train BERT Model for Helpdesk Classification', deadline: '2026-07-15', priority: 'High', status: 'Pending' }
+            ]
+          },
+          {
+            _id: 'mock-4',
+            id: 'mock-4',
+            employeeId: 'AVON-EMP-1004',
+            name: 'Emily Davis',
+            email: 'emily.davis@avon.co.in',
+            department: 'Support Operations',
+            role: 'Operations Lead',
+            joinDate: '2025-08-20',
+            status: 'Active',
+            skills: ['Kubernetes', 'Docker', 'Vercel CLI', 'AWS'],
+            tasks: [
+              { title: 'Setup SSL certificates', deadline: '2026-06-25', priority: 'High', status: 'Completed' },
+              { title: 'Audit container resource limits', deadline: '2026-07-02', priority: 'Low', status: 'Pending' }
+            ]
+          }
+        ]);
+      } else {
+        setEmployees(data);
+      }
     } catch (err) {
       console.error('Failed to load employees:', err);
     } finally {

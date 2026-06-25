@@ -30,7 +30,69 @@ const Tasks = () => {
   const fetchEmployeesAndTasks = async () => {
     setIsLoading(true);
     try {
-      const data = await employeeService.getAll();
+      let data = await employeeService.getAll();
+
+      if (data.length === 0) {
+        data = [
+          {
+            _id: 'mock-1',
+            id: 'mock-1',
+            employeeId: 'AVON-EMP-1001',
+            name: 'Alex Johnson',
+            email: 'alex.johnson@avon.co.in',
+            department: 'AI Solutions',
+            role: 'Senior Web Developer',
+            status: 'Active',
+            tasks: [
+              { title: 'Refactor Auth Interceptor', deadline: '2026-07-01', priority: 'High', status: 'Completed' },
+              { title: 'Setup Atlas VPC Peering', deadline: '2026-07-05', priority: 'Medium', status: 'Pending' },
+              { title: 'Audit Session Tokens Cache', deadline: '2026-06-30', priority: 'High', status: 'Pending' }
+            ]
+          },
+          {
+            _id: 'mock-2',
+            id: 'mock-2',
+            employeeId: 'AVON-EMP-1002',
+            name: 'Sarah Connor',
+            email: 'sarah.connor@avon.co.in',
+            department: 'UI/UX Design',
+            role: 'Lead UI/UX Designer',
+            status: 'Active',
+            tasks: [
+              { title: 'Design Glassmorphism Dashboard Layout', deadline: '2026-06-28', priority: 'High', status: 'Completed' },
+              { title: 'Create Client Portal Mockup V2', deadline: '2026-07-10', priority: 'Medium', status: 'Pending' }
+            ]
+          },
+          {
+            _id: 'mock-3',
+            id: 'mock-3',
+            employeeId: 'AVON-EMP-1003',
+            name: 'John Doe',
+            email: 'john.doe@avon.co.in',
+            department: 'AI Solutions',
+            role: 'AIML Engineer',
+            status: 'On Leave',
+            tasks: [
+              { title: 'Train BERT Model for Helpdesk Classification', deadline: '2026-07-15', priority: 'High', status: 'Pending' }
+            ]
+          },
+          {
+            _id: 'mock-4',
+            id: 'mock-4',
+            employeeId: 'AVON-EMP-1004',
+            name: 'Emily Davis',
+            email: 'emily.davis@avon.co.in',
+            department: 'Support Operations',
+            role: 'Operations Lead',
+            status: 'Active',
+            tasks: [
+              { title: 'Setup SSL certificates', deadline: '2026-06-25', priority: 'High', status: 'Completed' },
+              { title: 'Audit container resource limits', deadline: '2026-07-02', priority: 'Low', status: 'Pending' }
+            ]
+          }
+        ];
+      }
+
       setEmployees(data);
 
       // Compile tasks list from all employees

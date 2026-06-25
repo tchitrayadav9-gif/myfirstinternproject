@@ -48,10 +48,10 @@ const Dashboard = () => {
         let displayEmployees = empData;
         if (isDbEmpty) {
           displayEmployees = [
-            { _id: 'mock-1', name: 'Alex Johnson', department: 'Engineering', tasks: [1, 2, 3], status: 'Active' },
-            { _id: 'mock-2', name: 'Sarah Connor', department: 'Product Design', tasks: [1, 2], status: 'Active' },
-            { _id: 'mock-3', name: 'John Doe', department: 'Marketing', tasks: [1], status: 'On Leave' },
-            { _id: 'mock-4', name: 'Emily Davis', department: 'QA Engineering', tasks: [1, 2], status: 'Active' }
+            { _id: 'mock-1', name: 'Alex Johnson', department: 'AI Solutions', tasks: [1, 2, 3], status: 'Active' },
+            { _id: 'mock-2', name: 'Sarah Connor', department: 'UI/UX Design', tasks: [1, 2], status: 'Active' },
+            { _id: 'mock-3', name: 'John Doe', department: 'AI Solutions', tasks: [1], status: 'On Leave' },
+            { _id: 'mock-4', name: 'Emily Davis', department: 'Support Operations', tasks: [1, 2], status: 'Active' }
           ];
         }
         setEmployees(displayEmployees);

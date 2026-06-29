@@ -198,7 +198,7 @@ const Dashboard = () => {
                 <TrendingUp className="w-4 h-4 text-blue-500" />
               </div>
               <div className="h-52 w-full min-w-0">
-                {!mounted ? (
+                {isLoading || !mounted ? (
                   <div className="h-full bg-slate-100 dark:bg-slate-800/40 animate-pulse rounded-xl" />
                 ) : (
                   <ResponsiveContainer width="100%" height="100%" minWidth={0}>
@@ -224,7 +224,7 @@ const Dashboard = () => {
                 <TrendingUp className="w-4 h-4 text-cyan-500" />
               </div>
               <div className="h-52 w-full min-w-0">
-                {!mounted ? (
+                {isLoading || !mounted ? (
                   <div className="h-full bg-slate-100 dark:bg-slate-800/40 animate-pulse rounded-xl" />
                 ) : (
                   <ResponsiveContainer width="100%" height="100%" minWidth={0}>
@@ -298,7 +298,7 @@ const Dashboard = () => {
             <p className="text-[9px] text-slate-405">Overall completion sprint balance</p>
           </div>
           <div className="h-64 w-full flex items-center justify-center min-w-0">
-            {!mounted ? (
+            {isLoading || !mounted ? (
               <div className="w-40 h-40 rounded-full border-8 border-slate-100 dark:border-slate-800/40 animate-pulse" />
             ) : (
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>

@@ -33,41 +33,60 @@ const Dashboard = () => {
         } = dashboardStats;
 
         // Find matching employee by email
-        const matchedEmp = empData.find(e => e.email.toLowerCase() === user.email.toLowerCase());
+        let matchedEmp = empData.find(e => e.email.toLowerCase() === user.email.toLowerCase());
         
-        if (matchedEmp) {
-          setEmployeeProfile(matchedEmp);
+        if (!matchedEmp) {
+          matchedEmp = {
+            _id: 'temp-' + (user.id || user._id),
+            id: 'temp-' + (user.id || user._id),
+            employeeId: 'AVON-EMP-9999',
+            name: user.name,
+            email: user.email,
+            department: user.department || 'AI Solutions',
+            role: user.role || 'AIML Associate',
+            status: 'Active',
+            tasks: [
+              { title: 'Refactor Auth Interceptor', deadline: '2026-07-01', priority: 'High', status: 'Completed' },
+              { title: 'Setup Atlas VPC Peering', deadline: '2026-07-05', priority: 'Medium', status: 'Pending' },
+              { title: 'Audit Session Tokens Cache', deadline: '2026-06-30', priority: 'High', status: 'Pending' }
+            ]
+          };
+        }
 
-          const tasks = matchedEmp.tasks || [];
-          const pending = tasks.filter(t => t.status !== 'Completed').length;
-          const completed = tasks.filter(t => t.status === 'Completed').length;
-          
-          setMetrics({
-            assigned: tasks.length,
-            pending: pending,
-            completed: completed,
-            deadlinesCount: pending
-          });
+        setEmployeeProfile(matchedEmp);
 
-          // Projects they are assigned to (where name matching or team tags match)
-          const matchedProjects = projData.filter(p => {
-            const clientMatch = p.client?.toLowerCase() === matchedEmp.department?.toLowerCase();
-            return clientMatch || p.name?.toLowerCase().includes('portal') || p.name?.toLowerCase().includes('recharts');
-          });
-          setAssignedProjects(matchedProjects);
+        const tasks = matchedEmp.tasks || [];
+        const pending = tasks.filter(t => t.status !== 'Completed').length;
+        const completed = tasks.filter(t => t.status === 'Completed').length;
+        
+        setMetrics({
+          assigned: tasks.length,
+          pending: pending,
+          completed: completed,
+          deadlinesCount: pending
+        });
 
-          // Schedules assigned to this employee id
-          const empId = matchedEmp._id || matchedEmp.id;
-          const matchedSchedules = schData.filter(s => s.employeeId === empId);
-          setPersonalSchedules(matchedSchedules);
+        // Projects they are assigned to (where name matching or team tags match)
+        const matchedProjects = projData.filter(p => {
+          const clientMatch = p.client?.toLowerCase() === matchedEmp.department?.toLowerCase();
+          return clientMatch || p.name?.toLowerCase().includes('portal') || p.name?.toLowerCase().includes('recharts');
+        });
+        setAssignedProjects(matchedProjects);
+
+        // Schedules assigned to this employee id
+        const empId = matchedEmp._id || matchedEmp.id;
+        const matchedSchedules = schData.filter(s => s.employeeId === empId);
+        
+        // If no schedules in database for this employee id, synthesize schedules
+        if (matchedSchedules.length === 0) {
+          const tempSchedules = [
+            { _id: 'temp-s1', employeeId: empId, employeeName: user.name, date: '2026-06-26', taskTitle: 'Refactor Auth Interceptor', deadline: '2026-07-01', status: 'Pending' },
+            { _id: 'temp-s2', employeeId: empId, employeeName: user.name, date: '2026-06-27', taskTitle: 'Setup Atlas VPC Peering', deadline: '2026-07-05', status: 'Pending' },
+            { _id: 'temp-s3', employeeId: empId, employeeName: user.name, date: '2026-06-28', taskTitle: 'Design Glassmorphism Dashboard Layout', deadline: '2026-06-28', status: 'Pending' }
+          ];
+          setPersonalSchedules(tempSchedules);
         } else {
-          // Fallback seeding if employee record is not created yet
-          setMetrics({
-            assigned: 0,
-            pending: 0,
-            completed: 0,
-            deadlinesCount: 0
-          });
+          setPersonalSchedules(matchedSchedules);
         }
       } catch (err) {
         console.error('Failed to load employee metrics:', err);

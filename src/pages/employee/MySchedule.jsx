@@ -41,15 +41,37 @@ const MySchedule = () => {
         ];
       }
 
-      const matchedEmp = displayEmployees.find(e => e.email.toLowerCase() === user.email.toLowerCase());
-      if (matchedEmp) {
-        setEmployeeProfile(matchedEmp);
-        const empId = matchedEmp._id || matchedEmp.id;
-        
-        // Filter only schedules matching this employee id
-        const mySch = displaySchedules.filter(s => s.employeeId === empId);
-        setSchedules(mySch);
+      let matchedEmp = displayEmployees.find(e => e.email.toLowerCase() === user.email.toLowerCase());
+      
+      if (!matchedEmp) {
+        matchedEmp = {
+          _id: 'temp-' + (user.id || user._id),
+          id: 'temp-' + (user.id || user._id),
+          employeeId: 'AVON-EMP-9999',
+          name: user.name,
+          email: user.email,
+          department: user.department || 'AI Solutions',
+          role: user.role || 'AIML Associate'
+        };
+        const tempId = matchedEmp._id;
+        const hasExistingSchedules = displaySchedules.some(s => s.employeeId === tempId);
+        if (!hasExistingSchedules) {
+          const generatedSchedules = [
+            { _id: 'temp-s1', employeeId: tempId, employeeName: user.name, date: '2026-06-26', taskTitle: 'Refactor Auth Interceptor', deadline: '2026-07-01', status: 'Pending' },
+            { _id: 'temp-s2', employeeId: tempId, employeeName: user.name, date: '2026-06-27', taskTitle: 'Setup Atlas VPC Peering', deadline: '2026-07-05', status: 'Pending' },
+            { _id: 'temp-s3', employeeId: tempId, employeeName: user.name, date: '2026-06-28', taskTitle: 'Design Glassmorphism Dashboard Layout', deadline: '2026-06-28', status: 'Pending' },
+            { _id: 'temp-s4', employeeId: tempId, employeeName: user.name, date: '2026-06-29', taskTitle: 'Setup SSL certificates', deadline: '2026-06-25', status: 'Pending' }
+          ];
+          displaySchedules = [...displaySchedules, ...generatedSchedules];
+        }
       }
+
+      setEmployeeProfile(matchedEmp);
+      const empId = matchedEmp._id || matchedEmp.id;
+      
+      // Filter only schedules matching this employee id
+      const mySch = displaySchedules.filter(s => s.employeeId === empId);
+      setSchedules(mySch);
     } catch (err) {
       console.error('Failed to load employee schedules:', err);
     } finally {

@@ -35,15 +35,26 @@ const MyProjects = () => {
           ];
         }
 
-        const matchedEmp = activeEmpData.find(e => e.email.toLowerCase() === user.email.toLowerCase());
-        if (matchedEmp) {
-          // Projects matching department or containing tags matching portal, analytics, AI
-          const myProjects = activeProjData.filter(p => {
-            const clientMatch = p.client?.toLowerCase() === matchedEmp.department?.toLowerCase();
-            return clientMatch || p.name?.toLowerCase().includes('portal') || p.name?.toLowerCase().includes('recharts') || p.name?.toLowerCase().includes('migration') || p.name?.toLowerCase().includes('helpdesk');
-          });
-          setProjects(myProjects);
+        let matchedEmp = activeEmpData.find(e => e.email.toLowerCase() === user.email.toLowerCase());
+        
+        if (!matchedEmp) {
+          matchedEmp = {
+            _id: 'temp-' + (user.id || user._id),
+            id: 'temp-' + (user.id || user._id),
+            employeeId: 'AVON-EMP-9999',
+            name: user.name,
+            email: user.email,
+            department: user.department || 'AI Solutions',
+            role: user.role || 'AIML Associate'
+          };
         }
+
+        // Projects matching department or containing tags matching portal, analytics, AI
+        const myProjects = activeProjData.filter(p => {
+          const clientMatch = p.client?.toLowerCase() === matchedEmp.department?.toLowerCase();
+          return clientMatch || p.name?.toLowerCase().includes('portal') || p.name?.toLowerCase().includes('recharts') || p.name?.toLowerCase().includes('migration') || p.name?.toLowerCase().includes('helpdesk');
+        });
+        setProjects(myProjects);
       } catch (err) {
         console.error('Failed to load employee projects:', err);
       } finally {

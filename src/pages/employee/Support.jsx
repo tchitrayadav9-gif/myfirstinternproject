@@ -35,8 +35,26 @@ const Support = () => {
     try {
       const data = await ticketService.getAll();
       
+      let displayTickets = data;
+      if (displayTickets.length === 0) {
+        displayTickets = [
+          {
+            _id: 'mock-t1',
+            id: 'mock-t1',
+            raisedBy: user.email,
+            name: user.name,
+            email: user.email,
+            subject: 'Docker Container Network Resolution Issue',
+            message: 'My Docker containers are unable to resolve the MongoDB Atlas connection SRV records locally. Standard lookup is returning connection refused. Can you look at my DNS configuration?',
+            status: 'Pending',
+            createdAt: '2026-06-25T10:00:00.000Z',
+            replies: []
+          }
+        ];
+      }
+
       // Filter tickets raised by this employee (match email)
-      const myTix = data.filter(t => t.raisedBy?.toLowerCase() === user.email.toLowerCase());
+      const myTix = displayTickets.filter(t => t.raisedBy?.toLowerCase() === user.email.toLowerCase() || t.email?.toLowerCase() === user.email.toLowerCase());
       setTickets(myTix);
 
       if (myTix.length > 0 && !selectedTicket) {

@@ -18,7 +18,27 @@ const MyTasks = () => {
     setIsLoading(true);
     try {
       const data = await employeeService.getAll();
-      const matched = data.find(e => e.email.toLowerCase() === user.email.toLowerCase());
+      let displayEmployees = data;
+      if (displayEmployees.length === 0) {
+        displayEmployees = [
+          {
+            _id: 'mock-1',
+            id: 'mock-1',
+            employeeId: 'AVON-EMP-1001',
+            name: user.name,
+            email: user.email,
+            department: 'AI Solutions',
+            role: 'AIML Associate',
+            status: 'Active',
+            tasks: [
+              { title: 'Refactor Auth Interceptor', deadline: '2026-07-01', priority: 'High', status: 'Completed' },
+              { title: 'Setup Atlas VPC Peering', deadline: '2026-07-05', priority: 'Medium', status: 'Pending' },
+              { title: 'Audit Session Tokens Cache', deadline: '2026-06-30', priority: 'High', status: 'Pending' }
+            ]
+          }
+        ];
+      }
+      const matched = displayEmployees.find(e => e.email.toLowerCase() === user.email.toLowerCase());
       if (matched) {
         setEmployeeProfile(matched);
         setTasks(matched.tasks || []);

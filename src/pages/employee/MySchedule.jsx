@@ -26,13 +26,28 @@ const MySchedule = () => {
         employeeService.getAll()
       ]);
 
-      const matchedEmp = empData.find(e => e.email.toLowerCase() === user.email.toLowerCase());
+      let displaySchedules = schData;
+      let displayEmployees = empData;
+
+      if (displayEmployees.length === 0) {
+        displayEmployees = [
+          { _id: 'mock-1', id: 'mock-1', employeeId: 'AVON-EMP-1001', name: user.name, email: user.email, department: 'AI Solutions', role: 'AIML Associate' }
+        ];
+        displaySchedules = [
+          { _id: 'mock-s1', employeeId: 'mock-1', employeeName: user.name, date: '2026-06-26', taskTitle: 'Refactor Auth Interceptor', deadline: '2026-07-01', status: 'Pending' },
+          { _id: 'mock-s2', employeeId: 'mock-1', employeeName: user.name, date: '2026-06-27', taskTitle: 'Setup Atlas VPC Peering', deadline: '2026-07-05', status: 'Pending' },
+          { _id: 'mock-s3', employeeId: 'mock-1', employeeName: user.name, date: '2026-06-28', taskTitle: 'Design Glassmorphism Dashboard Layout', deadline: '2026-06-28', status: 'Pending' },
+          { _id: 'mock-s4', employeeId: 'mock-1', employeeName: user.name, date: '2026-06-29', taskTitle: 'Setup SSL certificates', deadline: '2026-06-25', status: 'Pending' }
+        ];
+      }
+
+      const matchedEmp = displayEmployees.find(e => e.email.toLowerCase() === user.email.toLowerCase());
       if (matchedEmp) {
         setEmployeeProfile(matchedEmp);
         const empId = matchedEmp._id || matchedEmp.id;
         
         // Filter only schedules matching this employee id
-        const mySch = schData.filter(s => s.employeeId === empId);
+        const mySch = displaySchedules.filter(s => s.employeeId === empId);
         setSchedules(mySch);
       }
     } catch (err) {

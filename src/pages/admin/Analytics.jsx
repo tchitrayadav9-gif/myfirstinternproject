@@ -40,7 +40,19 @@ const Analytics = () => {
             fullMark: 100
           };
         });
-        setDepartmentWorkload(deptRadar);
+
+        if (empData.length === 0) {
+          setDepartmentWorkload([
+            { subject: 'Web', Staff: 40, Tasks: 50, fullMark: 100 },
+            { subject: 'Mobile', Staff: 30, Tasks: 25, fullMark: 100 },
+            { subject: 'AI', Staff: 50, Tasks: 65, fullMark: 100 },
+            { subject: 'Cloud', Staff: 20, Tasks: 35, fullMark: 100 },
+            { subject: 'UI/UX', Staff: 35, Tasks: 45, fullMark: 100 },
+            { subject: 'Support', Staff: 15, Tasks: 20, fullMark: 100 }
+          ]);
+        } else {
+          setDepartmentWorkload(deptRadar);
+        }
 
         // 2. Ticket Response time progression (Composed Area + Line Chart)
         setTicketResponseData([

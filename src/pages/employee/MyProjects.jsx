@@ -20,12 +20,27 @@ const MyProjects = () => {
           employeeService.getAll()
         ]);
 
-        const matchedEmp = empData.find(e => e.email.toLowerCase() === user.email.toLowerCase());
+        let activeEmpData = empData;
+        let activeProjData = projData;
+
+        if (activeEmpData.length === 0) {
+          activeEmpData = [
+            { _id: 'mock-1', name: user.name, email: user.email, department: 'AI Solutions', role: 'AIML Associate' }
+          ];
+          activeProjData = [
+            { _id: 'mock-p1', name: 'Cloud Migration Pipeline', client: 'Nexus Ventures', status: 'In Progress', priority: 'High', due: '2026-08-31', description: 'Enterprise migration pipeline' },
+            { _id: 'mock-p2', name: 'UI Redesign & Theming', client: 'Hooli Inc', status: 'In Progress', priority: 'Medium', due: '2026-07-31', description: 'Modern dark/light layout themes' },
+            { _id: 'mock-p3', name: 'BERT Helpdesk Integration', client: 'Raviga Capital', status: 'Backlog', priority: 'High', due: '2026-09-15', description: 'Train NLP classifiers' },
+            { _id: 'mock-p4', name: 'SSL Certificate Automation', client: 'Initech Corp', status: 'Delivered', priority: 'Low', due: '2026-06-25', description: 'Auto renew cron jobs' }
+          ];
+        }
+
+        const matchedEmp = activeEmpData.find(e => e.email.toLowerCase() === user.email.toLowerCase());
         if (matchedEmp) {
           // Projects matching department or containing tags matching portal, analytics, AI
-          const myProjects = projData.filter(p => {
+          const myProjects = activeProjData.filter(p => {
             const clientMatch = p.client?.toLowerCase() === matchedEmp.department?.toLowerCase();
-            return clientMatch || p.name?.toLowerCase().includes('portal') || p.name?.toLowerCase().includes('recharts');
+            return clientMatch || p.name?.toLowerCase().includes('portal') || p.name?.toLowerCase().includes('recharts') || p.name?.toLowerCase().includes('migration') || p.name?.toLowerCase().includes('helpdesk');
           });
           setProjects(myProjects);
         }

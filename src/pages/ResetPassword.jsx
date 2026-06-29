@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Cpu, Lock, ShieldAlert, ArrowLeft, Send } from 'lucide-react';
+import { Cpu, Lock, ShieldAlert, ArrowLeft, Send, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { authService } from '../services/api';
 import { useToast } from '../context/ToastContext';
@@ -12,6 +12,7 @@ const ResetPassword = () => {
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -102,14 +103,21 @@ const ResetPassword = () => {
               <div className="relative">
                 <Lock className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-500" />
                 <input 
-                  type="password" 
+                  type={showPassword ? "text" : "password"} 
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter new security key..."
-                  className="w-full bg-slate-950/80 border border-slate-850 hover:border-slate-800 focus:border-sky-500/50 text-xs text-slate-200 pl-10 pr-4 py-3 rounded-xl focus:outline-none transition-all"
+                  className="w-full bg-slate-950/80 border border-slate-850 hover:border-slate-800 focus:border-sky-500/50 text-xs text-slate-200 pl-10 pr-10 py-3 rounded-xl focus:outline-none transition-all"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-3.5 text-slate-500 hover:text-slate-350 focus:outline-none"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
@@ -119,14 +127,21 @@ const ResetPassword = () => {
               <div className="relative">
                 <Lock className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-500" />
                 <input 
-                  type="password" 
+                  type={showPassword ? "text" : "password"} 
                   id="confirmPassword"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Verify new security key..."
-                  className="w-full bg-slate-950/80 border border-slate-850 hover:border-slate-800 focus:border-sky-500/50 text-xs text-slate-200 pl-10 pr-4 py-3 rounded-xl focus:outline-none transition-all"
+                  className="w-full bg-slate-950/80 border border-slate-850 hover:border-slate-800 focus:border-sky-500/50 text-xs text-slate-200 pl-10 pr-10 py-3 rounded-xl focus:outline-none transition-all"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-3.5 text-slate-500 hover:text-slate-350 focus:outline-none"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 

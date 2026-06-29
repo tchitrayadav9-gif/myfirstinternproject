@@ -2,13 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { 
   Users, Briefcase, CheckCircle, Clock, Calendar, FolderOpen,
-  ArrowUpRight, Award, ChevronRight, TrendingUp
+  ArrowUpRight, Award, TrendingUp
 } from 'lucide-react';
 import { 
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
   ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line
 } from 'recharts';
-import { authService } from '../../services/api';
+import { authService, employeeService } from '../../services/api';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -16,107 +16,37 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState({
     totalEmployees: 0,
-    activeProjects: 0,
+    totalClients: 0,
+    totalProjects: 0,
     pendingTasks: 0,
     completedTasks: 0,
-    scheduleCount: 0,
-    totalClients: 0
+    todaySchedules: 0
   });
 
   const [employees, setEmployees] = useState([]);
+  const [tasksCompletedData, setTasksCompletedData] = useState([]);
+  const [projectsCompletedData, setProjectsCompletedData] = useState([]);
   const [productivityData, setProductivityData] = useState([]);
-  const [taskCompletionData, setTaskCompletionData] = useState([]);
-  const [workProgressData, setWorkProgressData] = useState([]);
+  const [employeeDistributionData, setEmployeeDistributionData] = useState([]);
 
   useEffect(() => {
     setMounted(true);
     const fetchStats = async () => {
       setIsLoading(true);
       try {
-        const dashboardStats = await authService.getDashboardStats();
-        const {
-          employees: empData = [],
-          clients: clientData = [],
-          projects: projData = [],
-          tickets: ticketData = [],
-          schedules: schData = []
-        } = dashboardStats;
-
-        // Check if database is empty to enable simulated/demo state
-        const isDbEmpty = empData.length === 0;
-
-        let displayEmployees = empData;
-        if (isDbEmpty) {
-          displayEmployees = [
-            { _id: 'mock-1', name: 'Alex Johnson', department: 'AI Solutions', tasks: [1, 2, 3], status: 'Active' },
-            { _id: 'mock-2', name: 'Sarah Connor', department: 'UI/UX Design', tasks: [1, 2], status: 'Active' },
-            { _id: 'mock-3', name: 'John Doe', department: 'AI Solutions', tasks: [1], status: 'On Leave' },
-            { _id: 'mock-4', name: 'Emily Davis', department: 'Support Operations', tasks: [1, 2], status: 'Active' }
-          ];
-        }
-        setEmployees(displayEmployees);
-
-        // Calculate tasks counts
-        let pending = 0;
-        let completed = 0;
-        empData.forEach(emp => {
-          (emp.tasks || []).forEach(t => {
-            if (t.status === 'Completed') completed++;
-            else pending++;
-          });
-        });
-
-        // Seed default fallback tasks if empty
-        if (pending === 0 && completed === 0) {
-          pending = 7;
-          completed = 15;
-        }
-
-        setStats({
-          totalEmployees: isDbEmpty ? 8 : empData.length,
-          activeProjects: isDbEmpty ? 4 : projData.filter(p => p.status !== 'Delivered').length,
-          pendingTasks: pending,
-          completedTasks: completed,
-          scheduleCount: isDbEmpty ? 11 : schData.length,
-          totalClients: isDbEmpty ? 6 : clientData.length
-        });
-
-        // 1. Employee productivity (Bar chart)
-        let productivity = empData.slice(0, 6).map(emp => {
-          const completedCount = (emp.tasks || []).filter(t => t.status === 'Completed').length;
-          return {
-            name: emp.name.split(' ')[0],
-            Tasks: completedCount || Math.floor(Math.random() * 4) + 1 // fallback seed for visuals
-          };
-        });
-
-        if (productivity.length === 0) {
-          productivity = [
-            { name: 'Alex', Tasks: 5 },
-            { name: 'Sarah', Tasks: 8 },
-            { name: 'John', Tasks: 4 },
-            { name: 'Emily', Tasks: 7 },
-            { name: 'David', Tasks: 6 },
-            { name: 'Jessica', Tasks: 9 }
-          ];
-        }
-
-        setProductivityData(productivity);
-
-        // 2. Task Completion (Pie chart)
-        setTaskCompletionData([
-          { name: 'Pending', value: pending },
-          { name: 'Completed', value: completed }
+        const [statsData, chartsData, empList] = await Promise.all([
+          authService.getDashboardStats(),
+          authService.getDashboardCharts(),
+          employeeService.getAll()
         ]);
 
-        // 3. Work Progress (Line Chart - weekly progression of tasks closed)
-        setWorkProgressData([
-          { name: 'Week 1', progress: 5 },
-          { name: 'Week 2', progress: 12 },
-          { name: 'Week 3', progress: 18 },
-          { name: 'Week 4', progress: completed }
-        ]);
+        setStats(statsData);
+        setEmployees(empList);
 
+        setTasksCompletedData(chartsData.monthlyTasksCompleted || []);
+        setProjectsCompletedData(chartsData.projectsCompleted || []);
+        setProductivityData(chartsData.monthlyProductivity || []);
+        setEmployeeDistributionData(chartsData.employeeDistribution || []);
       } catch (err) {
         console.error('Failed to load dashboard metrics:', err);
       } finally {
@@ -129,14 +59,15 @@ const Dashboard = () => {
 
   const kpiList = [
     { label: "Total Employees", value: stats.totalEmployees, icon: Users, color: "text-[#1E40AF] bg-blue-50" },
-    { label: "Active Projects", value: stats.activeProjects, icon: Briefcase, color: "text-emerald-600 bg-emerald-50" },
+    { label: "Total Clients", value: stats.totalClients, icon: FolderOpen, color: "text-purple-600 bg-purple-50" },
+    { label: "Total Projects", value: stats.totalProjects, icon: Briefcase, color: "text-emerald-600 bg-emerald-50" },
     { label: "Pending Tasks", value: stats.pendingTasks, icon: Clock, color: "text-amber-600 bg-amber-50" },
     { label: "Completed Tasks", value: stats.completedTasks, icon: CheckCircle, color: "text-teal-600 bg-teal-50" },
-    { label: "Schedules Created", value: stats.scheduleCount, icon: Calendar, color: "text-[#06B6D4] bg-cyan-50" },
-    { label: "Total Clients", value: stats.totalClients, icon: FolderOpen, color: "text-purple-600 bg-purple-50" },
+    { label: "Today's Schedule", value: stats.todaySchedules, icon: Calendar, color: "text-[#06B6D4] bg-cyan-50" },
   ];
 
-  const COLORS = ['#F59E0B', '#10B981'];
+  // 7 colors for 7 departments
+  const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4'];
 
   return (
     <div className="space-y-6">
@@ -180,161 +111,182 @@ const Dashboard = () => {
         })}
       </div>
 
-      {/* Recharts Visualizations */}
+      {/* Recharts Visualizations - Symmetric Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Left: Employee Productivity (Bar) & Monthly Progress (Line) */}
-        <div className="lg:col-span-8 space-y-6">
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            {/* Employee Productivity */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm text-left">
-              <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
-                <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Employee Productivity</h3>
-                  <p className="text-[9px] text-slate-405">Closed milestones per sprint cycle</p>
-                </div>
-                <TrendingUp className="w-4 h-4 text-blue-500" />
-              </div>
-              <div className="h-52 w-full min-w-0 relative overflow-hidden">
-                {isLoading || !mounted ? (
-                  <div className="h-full bg-slate-100 dark:bg-slate-800/40 animate-pulse rounded-xl" />
-                ) : (
-                  <ResponsiveContainer width="99%" height="99%">
-                    <BarChart data={productivityData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                      <XAxis dataKey="name" fontSize={9} stroke="#94a3b8" tickLine={false} />
-                      <YAxis fontSize={9} stroke="#94a3b8" tickLine={false} />
-                      <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px' }} />
-                      <Bar dataKey="Tasks" fill="#1E40AF" radius={[4, 4, 0, 0]} isAnimationActive={false} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
+        {/* Monthly Tasks Completed (Bar) */}
+        <div className="lg:col-span-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm text-left">
+          <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Monthly Tasks Completed</h3>
+              <p className="text-[9px] text-slate-405">Closed milestones per calendar month</p>
             </div>
-
-            {/* Monthly Progress */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm text-left">
-              <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
-                <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Sprint Deliveries Velocity</h3>
-                  <p className="text-[9px] text-slate-405">Total task accumulation milestones</p>
-                </div>
-                <TrendingUp className="w-4 h-4 text-cyan-500" />
-              </div>
-              <div className="h-52 w-full min-w-0 relative overflow-hidden">
-                {isLoading || !mounted ? (
-                  <div className="h-full bg-slate-100 dark:bg-slate-800/40 animate-pulse rounded-xl" />
-                ) : (
-                  <ResponsiveContainer width="99%" height="99%">
-                    <LineChart data={workProgressData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                      <XAxis dataKey="name" fontSize={9} stroke="#94a3b8" tickLine={false} />
-                      <YAxis fontSize={9} stroke="#94a3b8" tickLine={false} />
-                      <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px' }} />
-                      <Line type="monotone" dataKey="progress" stroke="#06B6D4" strokeWidth={2.5} name="Progress" dot={{ r: 4 }} isAnimationActive={false} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
-            </div>
-
+            <CheckCircle className="w-4 h-4 text-emerald-500" />
           </div>
-
-          {/* Overview Table */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden text-left">
-            <div className="p-4 border-b border-slate-150 dark:border-slate-800 flex justify-between items-center">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-250">Active Employees Status Overview</h3>
-              <span className="text-[10px] bg-blue-50 text-[#1E40AF] px-2.5 py-0.5 rounded-md font-semibold">Staff directory</span>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="bg-slate-50 dark:bg-slate-800/40 text-slate-500 font-bold uppercase tracking-wider text-[9px] border-b border-slate-100 dark:border-slate-800">
-                    <th className="py-3 px-6">Name</th>
-                    <th className="py-3 px-6">Department</th>
-                    <th className="py-3 px-6">Tasks Count</th>
-                    <th className="py-3 px-6">Direct Availability</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {employees.map((emp, idx) => {
-                    const empId = emp._id ? String(emp._id) : (emp.id ? String(emp.id) : `emp-${idx}`);
-                    const tasksCount = emp.tasks?.length || 0;
-                    return (
-                      <tr key={empId} className="hover:bg-slate-50/50 dark:hover:bg-slate-850 transition-colors">
-                        <td className="py-3.5 px-6 font-bold text-slate-800 dark:text-white">{emp.name}</td>
-                        <td className="py-3.5 px-6 font-semibold text-slate-500 dark:text-slate-400">{emp.department}</td>
-                        <td className="py-3.5 px-6">
-                          <span className="bg-blue-50 dark:bg-slate-800 text-[#1E40AF] dark:text-cyan-400 px-2 py-0.5 rounded font-bold">{tasksCount} Tasks</span>
-                        </td>
-                        <td className="py-3.5 px-6">
-                          <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${
-                            emp.status === 'Active' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-450' : 'bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-450'
-                          }`}>
-                            {emp.status || 'Active'}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  {employees.length === 0 && (
-                    <tr>
-                      <td colSpan="4" className="py-6 text-center text-slate-400 italic">No employees found.</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+          <div className="h-52 w-full min-w-0 relative overflow-hidden">
+            {isLoading || !mounted ? (
+              <div className="h-full bg-slate-100 dark:bg-slate-800/40 animate-pulse rounded-xl" />
+            ) : (
+              <ResponsiveContainer width="99%" height="99%">
+                <BarChart data={tasksCompletedData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                  <XAxis dataKey="name" fontSize={9} stroke="#94a3b8" tickLine={false} />
+                  <YAxis fontSize={9} stroke="#94a3b8" tickLine={false} />
+                  <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px' }} />
+                  <Bar dataKey="Tasks" fill="#10B981" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
-
         </div>
 
-        {/* Right: Task progress (Pie) */}
-        <div className="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm text-left flex flex-col justify-between">
-          <div className="pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Tasks Progress Indices</h3>
-            <p className="text-[9px] text-slate-405">Overall completion sprint balance</p>
+        {/* Projects Completed Per Month (Line) */}
+        <div className="lg:col-span-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm text-left">
+          <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Projects Completed Per Month</h3>
+              <p className="text-[9px] text-slate-405">Total delivered project repositories</p>
+            </div>
+            <TrendingUp className="w-4 h-4 text-blue-500" />
           </div>
-          <div className="h-64 w-full flex items-center justify-center min-w-0 relative overflow-hidden">
+          <div className="h-52 w-full min-w-0 relative overflow-hidden">
             {isLoading || !mounted ? (
-              <div className="w-40 h-40 rounded-full border-8 border-slate-100 dark:border-slate-800/40 animate-pulse" />
+              <div className="h-full bg-slate-100 dark:bg-slate-800/40 animate-pulse rounded-xl" />
+            ) : (
+              <ResponsiveContainer width="99%" height="99%">
+                <LineChart data={projectsCompletedData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                  <XAxis dataKey="name" fontSize={9} stroke="#94a3b8" tickLine={false} />
+                  <YAxis fontSize={9} stroke="#94a3b8" tickLine={false} />
+                  <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px' }} />
+                  <Line type="monotone" dataKey="Completed" stroke="#3B82F6" strokeWidth={2.5} name="Completed" dot={{ r: 4 }} isAnimationActive={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+
+      </div>
+
+      {/* Recharts Visualizations - Symmetric Row 2 */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* Monthly Employee Productivity (Area) */}
+        <div className="lg:col-span-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm text-left">
+          <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Monthly Employee Productivity</h3>
+              <p className="text-[9px] text-slate-405 font-medium">Aggregated milestone execution weights index</p>
+            </div>
+            <Award className="w-4 h-4 text-amber-500" />
+          </div>
+          <div className="h-52 w-full min-w-0 relative overflow-hidden">
+            {isLoading || !mounted ? (
+              <div className="h-full bg-slate-100 dark:bg-slate-800/40 animate-pulse rounded-xl" />
+            ) : (
+              <ResponsiveContainer width="99%" height="99%">
+                <AreaChart data={productivityData}>
+                  <defs>
+                    <linearGradient id="colorProductivity" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.2}/>
+                      <stop offset="95%" stopColor="#F59E0B" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                  <XAxis dataKey="name" fontSize={9} stroke="#94a3b8" tickLine={false} />
+                  <YAxis fontSize={9} stroke="#94a3b8" tickLine={false} />
+                  <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px' }} />
+                  <Area type="monotone" dataKey="Productivity" stroke="#F59E0B" fillOpacity={1} fill="url(#colorProductivity)" isAnimationActive={false} />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+
+        {/* Employee Distribution by Department (Pie) */}
+        <div className="lg:col-span-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm text-left">
+          <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Employee Distribution</h3>
+              <p className="text-[9px] text-slate-405 font-medium">Headcount weights per corporate unit</p>
+            </div>
+            <Users className="w-4 h-4 text-indigo-500" />
+          </div>
+          <div className="h-52 w-full min-w-0 relative overflow-hidden flex items-center justify-center">
+            {isLoading || !mounted ? (
+              <div className="w-32 h-32 rounded-full border-8 border-slate-100 dark:border-slate-800/40 animate-pulse" />
             ) : (
               <ResponsiveContainer width="99%" height="99%">
                 <PieChart>
                   <Pie
-                    data={taskCompletionData}
-                    cx="50%"
-                    cy="45%"
-                    innerRadius={55}
-                    outerRadius={80}
-                    paddingAngle={5}
+                    data={employeeDistributionData}
+                    cx="40%"
+                    cy="50%"
+                    innerRadius={50}
+                    outerRadius={75}
+                    paddingAngle={3}
                     dataKey="value"
                     isAnimationActive={false}
                   >
-                    {taskCompletionData.map((entry, index) => (
+                    {employeeDistributionData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px' }} />
-                  <Legend layout="horizontal" align="center" verticalAlign="bottom" wrapperStyle={{ fontSize: '9px', fontWeight: 'bold' }} />
+                  <Legend layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{ fontSize: '9px', fontWeight: 'bold' }} />
                 </PieChart>
               </ResponsiveContainer>
             )}
           </div>
-          <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-500 font-semibold space-y-2">
-            <div className="flex justify-between">
-              <span>Sprint Targets Closed</span>
-              <span className="font-bold text-slate-800 dark:text-white">{stats.completedTasks}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Backlog Remaining</span>
-              <span className="font-bold text-slate-800 dark:text-white">{stats.pendingTasks}</span>
-            </div>
-          </div>
         </div>
 
+      </div>
+
+      {/* Overview Table - Full Width */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden text-left">
+        <div className="p-4 border-b border-slate-150 dark:border-slate-800 flex justify-between items-center">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-250">Active Employees Status Overview</h3>
+          <span className="text-[10px] bg-blue-50 text-[#1E40AF] px-2.5 py-0.5 rounded-md font-semibold">Staff directory</span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="bg-slate-50 dark:bg-slate-800/40 text-slate-500 font-bold uppercase tracking-wider text-[9px] border-b border-slate-100 dark:border-slate-800">
+                <th className="py-3 px-6">Name</th>
+                <th className="py-3 px-6">Department</th>
+                <th className="py-3 px-6">Tasks Count</th>
+                <th className="py-3 px-6">Direct Availability</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {employees.map((emp, idx) => {
+                const empId = emp._id ? String(emp._id) : (emp.id ? String(emp.id) : `emp-${idx}`);
+                const tasksCount = emp.tasks?.length || 0;
+                return (
+                  <tr key={empId} className="hover:bg-slate-50/50 dark:hover:bg-slate-850 transition-colors">
+                    <td className="py-3.5 px-6 font-bold text-slate-800 dark:text-white">{emp.name}</td>
+                    <td className="py-3.5 px-6 font-semibold text-slate-500 dark:text-slate-400">{emp.department}</td>
+                    <td className="py-3.5 px-6">
+                      <span className="bg-blue-50 dark:bg-slate-800 text-[#1E40AF] dark:text-cyan-400 px-2 py-0.5 rounded font-bold">{tasksCount} Tasks</span>
+                    </td>
+                    <td className="py-3.5 px-6">
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${
+                        emp.status === 'Active' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-450' : 'bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-450'
+                      }`}>
+                        {emp.status || 'Active'}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+              {employees.length === 0 && (
+                <tr>
+                  <td colSpan="4" className="py-6 text-center text-slate-400 italic">No employees found.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
     </div>

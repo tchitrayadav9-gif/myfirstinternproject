@@ -14,6 +14,8 @@ import About from '../pages/About';
 import Contact from '../pages/Contact';
 import Login from '../pages/Login';
 import Signup from '../pages/Signup';
+import ForgotPassword from '../pages/ForgotPassword';
+import ResetPassword from '../pages/ResetPassword';
 
 // Admin Pages
 import AdminDashboard from '../pages/admin/Dashboard';
@@ -167,6 +169,22 @@ const AppRoutes = () => {
         element={
           <PublicRoute>
             <Signup />
+          </PublicRoute>
+        } 
+      />
+      <Route 
+        path="/forgot-password" 
+        element={
+          <PublicRoute>
+            <ForgotPassword />
+          </PublicRoute>
+        } 
+      />
+      <Route 
+        path="/reset-password/:token" 
+        element={
+          <PublicRoute>
+            <ResetPassword />
           </PublicRoute>
         } 
       />

@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const Employee = require('../models/Employee');
 const User = require('../models/User');
+const Notification = require('../models/Notification');
 
 // Helper to generate a unique employee ID
 const generateEmployeeId = async () => {
@@ -90,6 +91,13 @@ const createEmployee = async (req, res) => {
       joinDate,
       status: status || 'Active',
       tasks: []
+    });
+
+    // Create welcome notification
+    await Notification.create({
+      recipient: email.toLowerCase(),
+      title: 'Welcome to Avon Technologies Portal',
+      message: `Your corporate employee profile has been created successfully. Welcome aboard, ${name}!`
     });
 
     res.status(201).json({
@@ -201,6 +209,13 @@ const addTask = async (req, res) => {
       { tasks },
       { new: true }
     );
+
+    // Create task notification for the employee
+    await Notification.create({
+      recipient: employee.email.toLowerCase(),
+      title: 'New Sprint Task Assigned',
+      message: `You have been assigned a new milestone: "${title}" (Deadline: ${deadline}, Priority: ${priority || 'Medium'}).`
+    });
 
     res.status(201).json(updated);
   } catch (error) {

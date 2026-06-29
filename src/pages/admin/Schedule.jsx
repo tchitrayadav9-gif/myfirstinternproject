@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Calendar as CalendarIcon, ChevronLeft, ChevronRight, Plus, X, 
-  Search, CheckCircle, Clock, Trash2, ShieldAlert, Filter
+  Search, CheckCircle, Clock, Trash2, ShieldAlert, Filter, Edit
 } from 'lucide-react';
 import { scheduleService, employeeService } from '../../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useToast } from '../../context/ToastContext';
 
 const Schedule = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [viewMode, setViewMode] = useState('month'); // 'month' or 'week'
   const [schedules, setSchedules] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const toast = useToast();
 
   // Filters
   const [selectedEmpFilter, setSelectedEmpFilter] = useState('All');
@@ -18,6 +21,8 @@ const Schedule = () => {
 
   // Modal
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [selectedScheduleId, setSelectedScheduleId] = useState('');
   const [selectedDateStr, setSelectedDateStr] = useState('');
   const [formErrors, setFormErrors] = useState({});
   const [formData, setFormData] = useState({
@@ -40,38 +45,15 @@ const Schedule = () => {
         employeeService.getAll()
       ]);
 
-      let displaySchedules = schData;
-      let displayEmployees = empData;
+      setEmployees(empData);
+      setSchedules(schData);
 
-      if (displayEmployees.length === 0) {
-        displayEmployees = [
-          { _id: 'mock-1', id: 'mock-1', employeeId: 'AVON-EMP-1001', name: 'Alex Johnson', department: 'AI Solutions', role: 'Senior Web Developer' },
-          { _id: 'mock-2', id: 'mock-2', employeeId: 'AVON-EMP-1002', name: 'Sarah Connor', department: 'UI/UX Design', role: 'Lead UI/UX Designer' },
-          { _id: 'mock-3', id: 'mock-3', employeeId: 'AVON-EMP-1003', name: 'John Doe', department: 'AI Solutions', role: 'AIML Engineer' },
-          { _id: 'mock-4', id: 'mock-4', employeeId: 'AVON-EMP-1004', name: 'Emily Davis', department: 'Support Operations', role: 'Operations Lead' }
-        ];
-        setEmployees(displayEmployees);
-      } else {
-        setEmployees(empData);
-      }
-
-      if (displaySchedules.length === 0) {
-        displaySchedules = [
-          { _id: 'mock-s1', employeeId: 'mock-1', employeeName: 'Alex Johnson', date: '2026-06-26', taskTitle: 'Refactor Auth Interceptor', deadline: '2026-07-01', status: 'Pending' },
-          { _id: 'mock-s2', employeeId: 'mock-1', employeeName: 'Alex Johnson', date: '2026-06-27', taskTitle: 'Setup Atlas VPC Peering', deadline: '2026-07-05', status: 'Pending' },
-          { _id: 'mock-s3', employeeId: 'mock-2', employeeName: 'Sarah Connor', date: '2026-06-28', taskTitle: 'Design Glassmorphism Dashboard Layout', deadline: '2026-06-28', status: 'Pending' },
-          { _id: 'mock-s4', employeeId: 'mock-4', employeeName: 'Emily Davis', date: '2026-06-29', taskTitle: 'Setup SSL certificates', deadline: '2026-06-25', status: 'Pending' }
-        ];
-        setSchedules(displaySchedules);
-      } else {
-        setSchedules(schData);
-      }
-
-      if (displayEmployees.length > 0) {
-        setFormData(prev => ({ ...prev, employeeId: displayEmployees[0]._id || displayEmployees[0].id }));
+      if (empData.length > 0 && !formData.employeeId) {
+        setFormData(prev => ({ ...prev, employeeId: empData[0]._id || empData[0].id }));
       }
     } catch (err) {
       console.error('Failed to load scheduling data:', err);
+      toast.error('Failed to load scheduling index.');
     } finally {
       setIsLoading(false);
     }
@@ -81,52 +63,108 @@ const Schedule = () => {
     fetchSchedulesAndEmployees();
   }, []);
 
-  const handlePrevMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  const handlePrev = () => {
+    if (viewMode === 'month') {
+      setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+    } else {
+      setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 7));
+    }
   };
 
-  const handleNextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  const handleNext = () => {
+    if (viewMode === 'month') {
+      setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+    } else {
+      setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 7));
+    }
   };
 
-  // Calendar rendering grid math
+  // Calendar helpers
   const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
   const getFirstDayIndex = (year, month) => new Date(year, month, 1).getDay();
 
   const daysInMonth = getDaysInMonth(currentDate.getFullYear(), currentDate.getMonth());
   const firstDayIndex = getFirstDayIndex(currentDate.getFullYear(), currentDate.getMonth());
 
-  // Filter schedules matching year-month, employee, and week range
+  // Filter schedules matching criteria
   const currentMonthStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
   
-  const filteredSchedules = schedules.filter(item => {
-    const matchesMonth = item.month === currentMonthStr;
-    const matchesEmp = selectedEmpFilter === 'All' || item.employeeId === selectedEmpFilter;
-    
-    // Weekly range math
-    let matchesWeek = true;
-    if (weekFilter !== 'All') {
-      const day = parseInt(item.date.split('-')[2]);
-      const weekNum = Math.ceil(day / 7);
-      matchesWeek = String(weekNum) === weekFilter;
-    }
+  const getStartOfWeek = (date) => {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day;
+    return new Date(d.setDate(diff));
+  };
 
-    return matchesMonth && matchesEmp && matchesWeek;
+  const startOfWeek = getStartOfWeek(currentDate);
+
+  const getWeekDays = () => {
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const nextDay = new Date(startOfWeek);
+      nextDay.setDate(startOfWeek.getDate() + i);
+      days.push(nextDay);
+    }
+    return days;
+  };
+
+  const weekDays = getWeekDays();
+
+  const filteredSchedules = schedules.filter(item => {
+    // Employee filter
+    const matchesEmp = selectedEmpFilter === 'All' || item.employeeId === selectedEmpFilter;
+    if (!matchesEmp) return false;
+
+    if (viewMode === 'month') {
+      const matchesMonth = item.date.substring(0, 7) === currentMonthStr;
+      if (!matchesMonth) return false;
+
+      // Weekly filter within the month
+      if (weekFilter !== 'All') {
+        const day = parseInt(item.date.split('-')[2], 10);
+        const weekNum = Math.ceil(day / 7);
+        return String(weekNum) === weekFilter;
+      }
+      return true;
+    } else {
+      // Week mode: check if date falls within week bounds
+      const itemDate = new Date(item.date);
+      const start = new Date(startOfWeek);
+      start.setHours(0,0,0,0);
+      const end = new Date(startOfWeek);
+      end.setDate(end.getDate() + 6);
+      end.setHours(23,59,59,999);
+      return itemDate >= start && itemDate <= end;
+    }
   });
 
-  const getSchedulesForDay = (day) => {
-    const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  const getSchedulesForDateStr = (dateStr) => {
     return filteredSchedules.filter(item => item.date === dateStr);
   };
 
-  const handleOpenAssignModal = (day) => {
-    const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  const handleOpenAssignModal = (dateStr) => {
     setSelectedDateStr(dateStr);
-    setFormData(prev => ({
-      ...prev,
+    setIsEditing(false);
+    setFormData({
+      employeeId: employees.length > 0 ? (employees[0]._id || employees[0].id) : '',
+      taskTitle: '',
       deadline: dateStr,
-      taskTitle: ''
-    }));
+      status: 'Pending'
+    });
+    setFormErrors({});
+    setIsAssignModalOpen(true);
+  };
+
+  const handleOpenEditModal = (sch) => {
+    setIsEditing(true);
+    setSelectedScheduleId(sch._id || sch.id);
+    setSelectedDateStr(sch.date);
+    setFormData({
+      employeeId: sch.employeeId,
+      taskTitle: sch.taskTitle,
+      deadline: sch.deadline,
+      status: sch.status || 'Pending'
+    });
     setFormErrors({});
     setIsAssignModalOpen(true);
   };
@@ -143,21 +181,32 @@ const Schedule = () => {
         ...formData,
         date: selectedDateStr
       };
-      await scheduleService.create(payload);
+
+      if (isEditing) {
+        await scheduleService.update(selectedScheduleId, payload);
+        toast.success('Schedule details updated successfully.');
+      } else {
+        await scheduleService.create(payload);
+        toast.success('Work schedule card created.');
+      }
       setIsAssignModalOpen(false);
       fetchSchedulesAndEmployees();
     } catch (err) {
       console.error(err);
       setFormErrors({ server: 'Error occurred while scheduling.' });
+      toast.error('Failed to commit schedule changes.');
     }
   };
 
   const handleDeleteSchedule = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this schedule agendum?')) return;
     try {
       await scheduleService.delete(id);
+      toast.success('Schedule deleted successfully.');
       fetchSchedulesAndEmployees();
     } catch (err) {
       console.error(err);
+      toast.error('Failed to delete schedule agendum.');
     }
   };
 
@@ -165,56 +214,62 @@ const Schedule = () => {
     switch (status) {
       case 'Completed': return 'bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-950/20 dark:text-emerald-450';
       case 'In Progress': return 'bg-amber-50 text-amber-600 border border-amber-100 dark:bg-amber-950/20 dark:text-amber-450';
-      default: return 'bg-rose-50 text-rose-600 border border-rose-100 dark:bg-rose-950/20 dark:text-rose-455';
+      default: return 'bg-rose-50 text-rose-600 border border-rose-100 dark:bg-rose-955/20 dark:text-rose-455';
     }
   };
 
-  // Calendar cells builder
+  // Month view cells builder
   const calendarCells = [];
-  // padding empty items
-  for (let i = 0; i < firstDayIndex; i++) {
-    calendarCells.push(<div key={`empty-${i}`} className="h-24 bg-slate-50/20 border border-slate-100 dark:bg-slate-900/10 dark:border-slate-800" />);
-  }
-  // days cells
-  for (let day = 1; day <= daysInMonth; day++) {
-    const daySchedules = getSchedulesForDay(day);
-    const isToday = new Date().getDate() === day && new Date().getMonth() === currentDate.getMonth() && new Date().getFullYear() === currentDate.getFullYear();
-    
-    // Check if this day is filtered out by week selector
-    let isFilteredOut = false;
-    if (weekFilter !== 'All') {
-      const weekNum = Math.ceil(day / 7);
-      if (String(weekNum) !== weekFilter) {
-        isFilteredOut = true;
-      }
+  if (viewMode === 'month') {
+    // empty day paddings
+    for (let i = 0; i < firstDayIndex; i++) {
+      calendarCells.push(<div key={`empty-${i}`} className="h-24 bg-slate-50/20 border border-slate-100 dark:bg-slate-900/10 dark:border-slate-800" />);
     }
+    // month days
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const daySchedules = getSchedulesForDateStr(dateStr);
+      const isToday = new Date().getDate() === day && new Date().getMonth() === currentDate.getMonth() && new Date().getFullYear() === currentDate.getFullYear();
+      
+      let isFilteredOut = false;
+      if (weekFilter !== 'All') {
+        const weekNum = Math.ceil(day / 7);
+        if (String(weekNum) !== weekFilter) {
+          isFilteredOut = true;
+        }
+      }
 
-    calendarCells.push(
-      <div 
-        key={`day-${day}`}
-        onClick={() => !isFilteredOut && handleOpenAssignModal(day)}
-        className={`h-24 p-2 border border-slate-100 dark:border-slate-800 transition-colors flex flex-col justify-between relative text-left ${
-          isFilteredOut 
-            ? 'bg-slate-100/30 dark:bg-slate-900/10 opacity-30 cursor-not-allowed' 
-            : 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-850 cursor-pointer'
-        } ${isToday ? 'ring-2 ring-indigo-500 bg-indigo-50/10' : ''}`}
-      >
-        <span className={`text-[10px] font-bold ${isToday ? 'text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-md dark:bg-slate-850 dark:text-cyan-400' : 'text-slate-400'}`}>
-          {day}
-        </span>
-        <div className="space-y-1 overflow-y-auto max-h-[50px] mt-1 pr-0.5 scrollbar-thin">
-          {daySchedules.map((sch, sIdx) => (
-            <div 
-              key={sIdx}
-              className="text-[8px] px-1.5 py-0.5 rounded truncate font-bold border bg-slate-50 border-slate-200 text-slate-700 dark:bg-slate-950 dark:border-slate-800 dark:text-slate-300"
-              title={`${sch.employeeName}: ${sch.taskTitle}`}
-            >
-              ({sch.employeeName.split(' ')[0]}) {sch.taskTitle}
-            </div>
-          ))}
+      calendarCells.push(
+        <div 
+          key={`day-${day}`}
+          onClick={() => !isFilteredOut && handleOpenAssignModal(dateStr)}
+          className={`h-24 p-2 border border-slate-100 dark:border-slate-800 transition-colors flex flex-col justify-between relative text-left ${
+            isFilteredOut 
+              ? 'bg-slate-100/30 dark:bg-slate-900/10 opacity-30 cursor-not-allowed' 
+              : 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-850 cursor-pointer'
+          } ${isToday ? 'ring-2 ring-indigo-500 bg-indigo-50/10' : ''}`}
+        >
+          <span className={`text-[10px] font-bold ${isToday ? 'text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-md dark:bg-slate-850 dark:text-cyan-400' : 'text-slate-400'}`}>
+            {day}
+          </span>
+          <div className="space-y-1 overflow-y-auto max-h-[50px] mt-1 pr-0.5 scrollbar-thin">
+            {daySchedules.map((sch, sIdx) => (
+              <div 
+                key={sIdx}
+                onClick={(e) => {
+                  e.stopPropagation(); // prevent opening create modal
+                  handleOpenEditModal(sch);
+                }}
+                className="text-[8px] px-1.5 py-0.5 rounded truncate font-bold border bg-slate-50 border-slate-200 text-slate-700 dark:bg-slate-950 dark:border-slate-800 dark:text-slate-300 hover:border-indigo-500/50"
+                title={`${sch.employeeName}: ${sch.taskTitle} (${sch.status})`}
+              >
+                ({sch.employeeName.split(' ')[0]}) {sch.taskTitle}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-    );
+      );
+    }
   }
 
   return (
@@ -227,6 +282,30 @@ const Schedule = () => {
           <h1 className="text-xl font-extrabold text-slate-900 dark:text-white mt-1">Monthly Employee Schedule</h1>
           <p className="text-xs text-slate-500 mt-1">Map task timelines, assign dates on the monthly grid, and audit availability.</p>
         </div>
+        
+        {/* Toggle Mode */}
+        <div className="flex bg-slate-100 dark:bg-slate-850 p-1 rounded-xl shrink-0">
+          <button 
+            onClick={() => setViewMode('month')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              viewMode === 'month' 
+                ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm' 
+                : 'text-slate-400 hover:text-slate-700 dark:hover:text-white'
+            }`}
+          >
+            Month View
+          </button>
+          <button 
+            onClick={() => setViewMode('week')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              viewMode === 'week' 
+                ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm' 
+                : 'text-slate-400 hover:text-slate-700 dark:hover:text-white'
+            }`}
+          >
+            Week View
+          </button>
+        </div>
       </div>
 
       {/* Filters Bar */}
@@ -237,7 +316,7 @@ const Schedule = () => {
             <select 
               value={selectedEmpFilter}
               onChange={(e) => setSelectedEmpFilter(e.target.value)}
-              className="w-full bg-[#F8FAFC] dark:bg-slate-950 border border-slate-200 dark:border-slate-850 text-xs text-slate-700 dark:text-slate-350 rounded-xl px-3 py-2.5"
+              className="w-full bg-[#F8FAFC] dark:bg-slate-955 border border-slate-200 dark:border-slate-850 text-xs text-slate-700 dark:text-slate-355 rounded-xl px-3 py-2.5"
             >
               <option value="All">All Employees</option>
               {employees.map((emp, idx) => {
@@ -248,21 +327,23 @@ const Schedule = () => {
               })}
             </select>
           </div>
-          <div className="space-y-1.5 w-48 shrink-0">
-            <label className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Weekly Filter</label>
-            <select 
-              value={weekFilter}
-              onChange={(e) => setWeekFilter(e.target.value)}
-              className="w-full bg-[#F8FAFC] dark:bg-slate-955 border border-slate-200 dark:border-slate-850 text-xs text-slate-700 dark:text-slate-350 rounded-xl px-3 py-2.5"
-            >
-              <option value="All">All Weeks</option>
-              <option value="1">Week 1 (Days 1-7)</option>
-              <option value="2">Week 2 (Days 8-14)</option>
-              <option value="3">Week 3 (Days 15-21)</option>
-              <option value="4">Week 4 (Days 22-28)</option>
-              <option value="5">Week 5 (Days 29+)</option>
-            </select>
-          </div>
+          {viewMode === 'month' && (
+            <div className="space-y-1.5 w-48 shrink-0">
+              <label className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Weekly Filter</label>
+              <select 
+                value={weekFilter}
+                onChange={(e) => setWeekFilter(e.target.value)}
+                className="w-full bg-[#F8FAFC] dark:bg-slate-955 border border-slate-200 dark:border-slate-850 text-xs text-slate-700 dark:text-slate-355 rounded-xl px-3 py-2.5"
+              >
+                <option value="All">All Weeks</option>
+                <option value="1">Week 1 (Days 1-7)</option>
+                <option value="2">Week 2 (Days 8-14)</option>
+                <option value="3">Week 3 (Days 15-21)</option>
+                <option value="4">Week 4 (Days 22-28)</option>
+                <option value="5">Week 5 (Days 29+)</option>
+              </select>
+            </div>
+          )}
         </div>
       </div>
 
@@ -270,44 +351,100 @@ const Schedule = () => {
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm space-y-4">
         <div className="flex justify-between items-center bg-[#F8FAFC] dark:bg-slate-950 p-2.5 rounded-2xl border border-slate-150 dark:border-slate-800">
           <button 
-            onClick={handlePrevMonth}
+            onClick={handlePrev}
             className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-850 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <span className="text-xs font-bold text-slate-700 dark:text-white uppercase tracking-wider flex items-center space-x-2">
             <CalendarIcon className="w-4 h-4 text-[#1E40AF]" />
-            <span>{months[currentDate.getMonth()]} {currentDate.getFullYear()}</span>
+            <span>
+              {viewMode === 'month' 
+                ? `${months[currentDate.getMonth()]} ${currentDate.getFullYear()}` 
+                : `Week of ${startOfWeek.toLocaleDateString(undefined, {month: 'short', day: 'numeric', year: 'numeric'})}`
+              }
+            </span>
           </span>
           <button 
-            onClick={handleNextMonth}
+            onClick={handleNext}
             className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-850 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Days of week */}
-        <div className="grid grid-cols-7 gap-1 text-center font-bold text-[9px] uppercase tracking-wider text-slate-400 py-1 border-b border-slate-100 dark:border-slate-800">
-          <div>Sun</div>
-          <div>Mon</div>
-          <div>Tue</div>
-          <div>Wed</div>
-          <div>Thu</div>
-          <div>Fri</div>
-          <div>Sat</div>
-        </div>
-
-        {/* Grid Cells */}
-        <div className="grid grid-cols-7 gap-1 bg-slate-50 dark:bg-slate-950/20 rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800">
-          {calendarCells}
-        </div>
+        {/* Calendar Grid Cells */}
+        {viewMode === 'month' ? (
+          <div>
+            <div className="grid grid-cols-7 gap-1 text-center font-bold text-[9px] uppercase tracking-wider text-slate-400 py-1 border-b border-slate-100 dark:border-slate-800 mb-1">
+              <div>Sun</div>
+              <div>Mon</div>
+              <div>Tue</div>
+              <div>Wed</div>
+              <div>Thu</div>
+              <div>Fri</div>
+              <div>Sat</div>
+            </div>
+            <div className="grid grid-cols-7 gap-1 bg-slate-50 dark:bg-slate-950/20 rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800">
+              {calendarCells}
+            </div>
+          </div>
+        ) : (
+          /* Week view layout */
+          <div className="grid grid-cols-1 sm:grid-cols-7 gap-2">
+            {weekDays.map((day, idx) => {
+              const dateStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
+              const daySchedules = getSchedulesForDateStr(dateStr);
+              const isToday = new Date().toDateString() === day.toDateString();
+              
+              return (
+                <div 
+                  key={idx}
+                  onClick={() => handleOpenAssignModal(dateStr)}
+                  className={`p-3 min-h-[160px] border border-slate-100 dark:border-slate-800 rounded-2xl transition-colors flex flex-col justify-between text-left cursor-pointer ${
+                    isToday 
+                      ? 'ring-2 ring-indigo-500 bg-indigo-50/10' 
+                      : 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-850'
+                  }`}
+                >
+                  <div>
+                    <span className="text-[9px] font-bold text-slate-400 block uppercase">
+                      {day.toLocaleDateString(undefined, { weekday: 'short' })}
+                    </span>
+                    <span className={`text-base font-extrabold block mt-0.5 ${
+                      isToday ? 'text-indigo-600 dark:text-cyan-400' : 'text-slate-850 dark:text-white'
+                    }`}>
+                      {day.getDate()}
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-1.5 flex-1 mt-3 overflow-y-auto max-h-[100px] scrollbar-thin pr-0.5">
+                    {daySchedules.map((sch, sIdx) => (
+                      <div 
+                        key={sIdx}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenEditModal(sch);
+                        }}
+                        className="p-1.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 text-[8px] font-bold text-slate-700 dark:text-slate-350 hover:border-indigo-500"
+                        title={sch.taskTitle}
+                      >
+                        <div className="truncate text-slate-850 dark:text-white">{sch.taskTitle}</div>
+                        <div className="text-[7px] text-slate-400 mt-0.5">({sch.employeeName.split(' ')[0]})</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Details Table */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden text-left">
         <div className="p-4 border-b border-slate-150 dark:border-slate-800 flex justify-between items-center">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-850 dark:text-white">Assigned Schedules Index ({filteredSchedules.length})</h3>
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-855 dark:text-white">Assigned Schedules Index ({filteredSchedules.length})</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
@@ -322,7 +459,18 @@ const Schedule = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {filteredSchedules.length > 0 ? (
+              {isLoading ? (
+                [1, 2, 3].map((n) => (
+                  <tr key={n} className="animate-pulse">
+                    <td className="py-4 px-6"><div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-24"></div></td>
+                    <td className="py-4 px-6"><div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-48"></div></td>
+                    <td className="py-4 px-6"><div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-16"></div></td>
+                    <td className="py-4 px-6"><div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-16"></div></td>
+                    <td className="py-4 px-6"><div className="h-6 bg-slate-200 dark:bg-slate-800 rounded w-16"></div></td>
+                    <td className="py-4 px-6 text-right"><div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-12 ml-auto"></div></td>
+                  </tr>
+                ))
+              ) : filteredSchedules.length > 0 ? (
                 filteredSchedules.map((sch, idx) => {
                   const schId = sch._id || sch.id;
                   return (
@@ -338,6 +486,13 @@ const Schedule = () => {
                       </td>
                       <td className="py-3 px-6 text-right">
                         <button 
+                          onClick={() => handleOpenEditModal(sch)}
+                          className="p-1 text-indigo-500 hover:text-indigo-405 transition-colors mr-2.5"
+                          title="Edit Schedule Entry"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+                        <button 
                           onClick={() => handleDeleteSchedule(schId)}
                           className="p-1 text-rose-500 hover:text-rose-455 transition-colors"
                           title="Remove Schedule Entry"
@@ -350,7 +505,7 @@ const Schedule = () => {
                 })
               ) : (
                 <tr>
-                  <td colSpan="6" className="py-8 text-center text-slate-400 italic">No schedules match the active month and filters.</td>
+                  <td colSpan="6" className="py-8 text-center text-slate-400 italic">No schedules match the active view and filters.</td>
                 </tr>
               )}
             </tbody>
@@ -358,7 +513,7 @@ const Schedule = () => {
         </div>
       </div>
 
-      {/* Assign Task Modal */}
+      {/* Assign / Edit Task Modal */}
       <AnimatePresence>
         {isAssignModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -377,7 +532,9 @@ const Schedule = () => {
             >
               <div className="flex justify-between items-start">
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">Schedule Work Assignment</h3>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    {isEditing ? 'Modify Work Schedule' : 'Schedule Work Assignment'}
+                  </h3>
                   <p className="text-[10px] text-slate-500 mt-0.5">Scheduling task for: <span className="text-indigo-650 dark:text-cyan-400 font-bold">{selectedDateStr}</span></p>
                 </div>
                 <button onClick={() => setIsAssignModalOpen(false)} className="text-slate-455 hover:text-slate-700">
@@ -393,11 +550,12 @@ const Schedule = () => {
 
               <form onSubmit={handleFormSubmit} className="space-y-4 text-xs">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Employee Candidate</label>
+                  <label className="text-[10px] text-slate-505 font-bold uppercase tracking-wider">Employee Candidate</label>
                   <select 
                     value={formData.employeeId}
                     onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
-                    className="w-full bg-[#F8FAFC] dark:bg-slate-955 border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl"
+                    disabled={isEditing} // employee lock on edit to maintain database coherence
+                    className="w-full bg-[#F8FAFC] dark:bg-slate-955 border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl disabled:opacity-60"
                   >
                     {employees.map((emp, idx) => {
                       const empId = emp._id ? String(emp._id) : (emp.id ? String(emp.id) : `emp-opt-${idx}`);
@@ -411,7 +569,7 @@ const Schedule = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Work Title / Description</label>
+                  <label className="text-[10px] text-slate-505 font-bold uppercase tracking-wider">Work Title / Description</label>
                   <input 
                     type="text" 
                     value={formData.taskTitle}
@@ -429,7 +587,7 @@ const Schedule = () => {
                       type="date" 
                       value={formData.deadline}
                       onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-                      className="w-full bg-[#F8FAFC] dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl focus:outline-none"
+                      className="w-full bg-[#F8FAFC] dark:bg-slate-955 border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl focus:outline-none"
                     />
                   </div>
 
@@ -451,7 +609,7 @@ const Schedule = () => {
                   type="submit"
                   className="w-full py-2.5 bg-[#1E40AF] hover:bg-[#1E40AF]/90 text-white font-bold rounded-xl transition-all shadow-md"
                 >
-                  Create Schedule Card
+                  {isEditing ? 'Save Changes' : 'Create Schedule Card'}
                 </button>
               </form>
             </motion.div>

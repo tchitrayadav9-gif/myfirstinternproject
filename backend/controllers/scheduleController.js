@@ -1,5 +1,6 @@
 const Schedule = require('../models/Schedule');
 const Employee = require('../models/Employee');
+const Notification = require('../models/Notification');
 
 // @desc    Get monthly schedules
 // @route   GET /api/schedules
@@ -53,6 +54,13 @@ const createSchedule = async (req, res) => {
       deadline,
       status: status || 'Pending',
       month
+    });
+
+    // Create schedule notification for the employee
+    await Notification.create({
+      recipient: employee.email.toLowerCase(),
+      title: 'New Work Schedule Agendum',
+      message: `Admin has scheduled a new work agendum for you on ${date}: "${taskTitle}" (Deadline: ${deadline}).`
     });
 
     res.status(201).json(schedule);

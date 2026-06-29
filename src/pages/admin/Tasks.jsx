@@ -5,8 +5,10 @@ import {
 } from 'lucide-react';
 import { employeeService } from '../../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useToast } from '../../context/ToastContext';
 
 const Tasks = () => {
+  const toast = useToast();
   const [employees, setEmployees] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [tasksList, setTasksList] = useState([]);
@@ -138,12 +140,15 @@ const Tasks = () => {
     try {
       const { employeeId, ...taskPayload } = formData;
       await employeeService.addTask(employeeId, taskPayload);
+      toast.success('Task Assigned successfully!');
       setIsAddModalOpen(false);
       resetForm();
       fetchEmployeesAndTasks();
     } catch (err) {
       console.error(err);
-      setFormErrors({ server: 'Failed to create sprint task.' });
+      const errMsg = err.response?.data?.message || 'Failed to create sprint task.';
+      setFormErrors({ server: errMsg });
+      toast.error(errMsg);
     }
   };
 

@@ -64,6 +64,9 @@ app.use('/api/projects', require('./routes/projectRoutes'));
 app.use('/api/tickets', require('./routes/ticketRoutes'));
 app.use('/api/schedules', require('./routes/scheduleRoutes'));
 app.use('/api/contact', require('./routes/contactRoutes'));
+app.use('/api/dashboard', require('./routes/dashboardRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
+app.use('/api/employee', require('./routes/employeeSubRoutes'));
 
 // Global error handling middleware
 const errorHandler = (err, req, res, next) => {

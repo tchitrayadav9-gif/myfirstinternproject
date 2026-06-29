@@ -5,8 +5,10 @@ import {
 } from 'lucide-react';
 import { projectService } from '../../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useToast } from '../../context/ToastContext';
 
 const Projects = () => {
+  const toast = useToast();
   const [projectList, setProjectList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -75,12 +77,15 @@ const Projects = () => {
     if (!validateForm()) return;
     try {
       await projectService.create(formData);
+      toast.success('Project Created successfully!');
       setIsAddModalOpen(false);
       resetForm();
       fetchProjects();
     } catch (err) {
       console.error(err);
-      setFormErrors({ server: err.response?.data?.message || 'Error occurred.' });
+      const errMsg = err.response?.data?.message || 'Error occurred.';
+      setFormErrors({ server: errMsg });
+      toast.error(errMsg);
     }
   };
 

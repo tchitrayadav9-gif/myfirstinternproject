@@ -1,24 +1,26 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { 
-  CheckCircle, Clock, AlertTriangle, Calendar, Award, 
-  Briefcase, CheckSquare, ChevronRight, UserCircle
+  CheckSquare, Clock, CheckCircle, AlertTriangle, UserCircle, 
+  TrendingUp, Award, ClipboardList
 } from 'lucide-react';
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { authService } from '../../services/api';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const [employeeProfile, setEmployeeProfile] = useState(null);
-  const [assignedProjects, setAssignedProjects] = useState([]);
   const [personalSchedules, setPersonalSchedules] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
   const [metrics, setMetrics] = useState({
     assigned: 0,
     pending: 0,
     completed: 0,
     deadlinesCount: 0
   });
+
+  const [completionPercentage, setCompletionPercentage] = useState(0);
+  const [taskStatusData, setTaskStatusData] = useState([]);
 
   useEffect(() => {
     const fetchEmployeeData = async () => {
@@ -28,7 +30,6 @@ const Dashboard = () => {
         const dashboardStats = await authService.getDashboardStats();
         const {
           employees: empData = [],
-          projects: projData = [],
           schedules: schData = []
         } = dashboardStats;
 
@@ -56,26 +57,31 @@ const Dashboard = () => {
         setEmployeeProfile(matchedEmp);
 
         const tasks = matchedEmp.tasks || [];
-        const pending = tasks.filter(t => t.status !== 'Completed').length;
+        const pending = tasks.filter(t => t.status === 'Pending').length;
+        const inProgress = tasks.filter(t => t.status === 'In Progress').length;
         const completed = tasks.filter(t => t.status === 'Completed').length;
         
+        // Completion Percentage calculation
+        const totalTasks = tasks.length;
+        const pct = totalTasks > 0 ? Math.round((completed / totalTasks) * 100) : 0;
+        setCompletionPercentage(pct);
+
         setMetrics({
-          assigned: tasks.length,
-          pending: pending,
+          assigned: totalTasks,
+          pending: pending + inProgress,
           completed: completed,
-          deadlinesCount: pending
+          deadlinesCount: pending + inProgress
         });
 
-        // Projects they are assigned to (where name matching or team tags match)
-        const matchedProjects = projData.filter(p => {
-          const clientMatch = p.client?.toLowerCase() === matchedEmp.department?.toLowerCase();
-          return clientMatch || p.name?.toLowerCase().includes('portal') || p.name?.toLowerCase().includes('recharts');
-        });
-        setAssignedProjects(matchedProjects);
+        // Set pie chart status data
+        setTaskStatusData([
+          { name: 'Pending', value: pending },
+          { name: 'In Progress', value: inProgress },
+          { name: 'Completed', value: completed }
+        ].filter(t => t.value > 0)); // only show positive slices
 
-        // Schedules assigned to this employee id
         const empId = matchedEmp._id || matchedEmp.id;
-        const matchedSchedules = schData.filter(s => s.employeeId === empId);
+        const matchedSchedules = schData.filter(s => String(s.employeeId) === String(empId));
         
         // If no schedules in database for this employee id, synthesize schedules
         if (matchedSchedules.length === 0) {
@@ -104,6 +110,8 @@ const Dashboard = () => {
     { label: "Completed Tasks", value: metrics.completed, icon: CheckCircle, color: "bg-emerald-50 border-emerald-100 text-emerald-600 dark:bg-slate-900" },
     { label: "Upcoming Deadlines", value: metrics.deadlinesCount, icon: AlertTriangle, color: "bg-rose-50 border-rose-100 text-rose-600 dark:bg-slate-900" },
   ];
+
+  const PIE_COLORS = ['#EF4444', '#F59E0B', '#10B981']; // Pending (Red), In Progress (Amber), Completed (Green)
 
   return (
     <div className="space-y-6">
@@ -154,20 +162,32 @@ const Dashboard = () => {
             <span className="text-[10px] text-indigo-650 bg-indigo-50 px-2 py-0.5 rounded font-bold dark:bg-slate-800 dark:text-indigo-400">Current Sprint</span>
           </div>
 
-          <div className="space-y-3 flex-1 overflow-y-auto max-h-[300px] pr-1">
+          <div className="space-y-3 flex-1 overflow-y-auto max-h-[350px] pr-1">
             {employeeProfile?.tasks && employeeProfile.tasks.length > 0 ? (
-              employeeProfile.tasks.slice(0, 4).map((task, tIdx) => {
+              employeeProfile.tasks.map((task, tIdx) => {
                 const isCompleted = task.status === 'Completed';
+                const isInProgress = task.status === 'In Progress';
                 return (
                   <div 
                     key={tIdx}
-                    className="flex justify-between items-center p-3 bg-[#F8FAFC] dark:bg-slate-950/40 border border-slate-150 dark:border-slate-850 rounded-xl shadow-sm"
+                    className="flex justify-between items-center p-3 bg-[#F8FAFC] dark:bg-slate-955/40 border border-slate-150 dark:border-slate-850 rounded-xl shadow-sm hover:border-slate-200 dark:hover:border-slate-700 transition-colors"
                   >
                     <div className="flex items-center space-x-3">
-                      <div className={`w-2 h-2 rounded-full ${isCompleted ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                      <div className={`w-2 h-2 rounded-full ${
+                        isCompleted ? 'bg-emerald-500' : isInProgress ? 'bg-amber-500' : 'bg-rose-500'
+                      }`} />
                       <span className={`text-xs font-semibold text-slate-800 dark:text-slate-250 ${isCompleted ? 'line-through text-slate-400 font-normal' : ''}`}>{task.title}</span>
                     </div>
-                    <span className="text-[9px] font-mono text-slate-455 font-semibold">Due: {task.deadline}</span>
+                    <div className="flex items-center space-x-3">
+                      <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase ${
+                        isCompleted ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20' :
+                        isInProgress ? 'bg-amber-50 text-amber-600 dark:bg-amber-950/20' :
+                        'bg-rose-50 text-rose-600 dark:bg-rose-950/20'
+                      }`}>
+                        {task.status}
+                      </span>
+                      <span className="text-[9px] font-mono text-slate-455 font-semibold">Due: {task.deadline}</span>
+                    </div>
                   </div>
                 );
               })
@@ -179,27 +199,86 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Right Side: Quick info block */}
-        <div className="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-205 dark:border-slate-800 p-6 rounded-3xl shadow-sm space-y-4">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-755 dark:text-slate-300 pb-2 border-b border-slate-100 dark:border-slate-805">Work Profile Summary</h3>
-          <div className="space-y-4 text-xs">
-            <div className="flex justify-between pb-3 border-b border-slate-50 dark:border-slate-805/50">
-              <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Full Name</span>
-              <span className="font-bold text-slate-800 dark:text-white">{employeeProfile?.name || user?.name}</span>
-            </div>
-            <div className="flex justify-between pb-3 border-b border-slate-50 dark:border-slate-805/50">
-              <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Designated Role</span>
-              <span className="font-bold text-slate-800 dark:text-white">{employeeProfile?.role || 'Associate'}</span>
-            </div>
-            <div className="flex justify-between pb-3 border-b border-slate-50 dark:border-slate-805/50">
-              <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Joining Date</span>
-              <span className="font-bold font-mono text-slate-800 dark:text-white">{employeeProfile?.joinDate || 'N/A'}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Active Projects</span>
-              <span className="font-bold text-indigo-650 dark:text-indigo-400">{assignedProjects.length} Projects</span>
+        {/* Right Side: Progress and Pie Chart */}
+        <div className="lg:col-span-4 space-y-6">
+          
+          {/* Completion Progress Card */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl shadow-sm text-left space-y-3">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-755 dark:text-slate-300 pb-2 border-b border-slate-100 dark:border-slate-805">Sprint Completion Index</h3>
+            
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-500 font-medium">Task Completion Weight</span>
+                <span className="font-extrabold text-slate-900 dark:text-white">{isLoading ? '...' : `${completionPercentage}%`}</span>
+              </div>
+              
+              {/* Progress Bar */}
+              <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                <div 
+                  className="bg-indigo-600 h-full rounded-full transition-all duration-500 ease-out" 
+                  style={{ width: `${completionPercentage}%` }} 
+                />
+              </div>
             </div>
           </div>
+
+          {/* Task Status Pie Chart */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl shadow-sm text-left space-y-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-755 dark:text-slate-300 pb-2 border-b border-slate-100 dark:border-slate-805">Task Status Matrix</h3>
+            
+            <div className="h-44 w-full relative overflow-hidden flex items-center justify-center">
+              {isLoading || taskStatusData.length === 0 ? (
+                <div className="text-xs text-slate-400 italic py-8">No tasks distribution data available</div>
+              ) : (
+                <ResponsiveContainer width="99%" height="99%">
+                  <PieChart>
+                    <Pie
+                      data={taskStatusData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={35}
+                      outerRadius={55}
+                      paddingAngle={3}
+                      dataKey="value"
+                    >
+                      {taskStatusData.map((entry, index) => {
+                        let cellColor = '#EF4444'; // Pending
+                        if (entry.name === 'In Progress') cellColor = '#F59E0B';
+                        if (entry.name === 'Completed') cellColor = '#10B981';
+                        return <Cell key={`cell-${index}`} fill={cellColor} />;
+                      })}
+                    </Pie>
+                    <Tooltip contentStyle={{ fontSize: '9px', borderRadius: '6px' }} />
+                    <Legend wrapperStyle={{ fontSize: '9px', fontWeight: 'semibold' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+
+          {/* Work Profile Summary */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-205 dark:border-slate-800 p-6 rounded-3xl shadow-sm space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-755 dark:text-slate-300 pb-2 border-b border-slate-100 dark:border-slate-805">Work Profile Summary</h3>
+            <div className="space-y-4 text-xs">
+              <div className="flex justify-between pb-3 border-b border-slate-50 dark:border-slate-805/50">
+                <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Full Name</span>
+                <span className="font-bold text-slate-800 dark:text-white">{employeeProfile?.name || user?.name}</span>
+              </div>
+              <div className="flex justify-between pb-3 border-b border-slate-50 dark:border-slate-805/50">
+                <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Designated Role</span>
+                <span className="font-bold text-slate-800 dark:text-white">{employeeProfile?.role || 'Associate'}</span>
+              </div>
+              <div className="flex justify-between pb-3 border-b border-slate-50 dark:border-slate-805/50">
+                <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Corporate Email</span>
+                <span className="font-bold text-slate-800 dark:text-white truncate max-w-[150px]">{employeeProfile?.email || user?.email}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Portal Status</span>
+                <span className="font-bold text-emerald-500">Online</span>
+              </div>
+            </div>
+          </div>
+
         </div>
 
       </div>

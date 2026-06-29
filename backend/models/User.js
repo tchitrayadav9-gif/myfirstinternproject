@@ -17,7 +17,9 @@ const UserSchema = {
   googleLogin: { type: Boolean, default: false },
   googleId: { type: String },
   uid: { type: String }, // User spec
-  provider: { type: String, default: 'Credentials' } // User spec
+  provider: { type: String, default: 'Credentials' }, // User spec
+  resetPasswordToken: { type: String },
+  resetPasswordExpires: { type: Date }
 };
 
 // Seed data

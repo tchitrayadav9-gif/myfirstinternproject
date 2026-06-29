@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
@@ -7,6 +7,7 @@ import {
   LayoutDashboard, CheckSquare, Calendar, FolderClock, UserCircle, 
   HelpCircle, LogOut, Menu, X, ChevronLeft, ChevronRight, Sun, Moon, Bell
 } from 'lucide-react';
+import { notificationService } from '../services/api';
 
 const EmployeeLayout = () => {
   const { user, logout } = useAuth();
@@ -16,6 +17,37 @@ const EmployeeLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const fetchNotifications = async () => {
+    try {
+      const data = await notificationService.getAll();
+      setNotifications(data);
+      setUnreadCount(data.filter(n => !n.isRead).length);
+    } catch (err) {
+      console.error('Failed to load notifications:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchNotifications();
+      const interval = setInterval(fetchNotifications, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user]);
+
+  const handleMarkAsRead = async (id) => {
+    try {
+      await notificationService.markAsRead(id);
+      fetchNotifications();
+    } catch (err) {
+      console.error('Failed to mark notification read:', err);
+    }
+  };
 
   const menuItems = [
     { name: 'Dashboard', path: '/employee-dashboard', icon: LayoutDashboard },
@@ -195,11 +227,70 @@ const EmployeeLayout = () => {
               {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
 
-            {/* Notifications */}
-            <button className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-105 dark:hover:bg-slate-850 transition-colors relative">
-              <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-indigo-500 rounded-full" />
-            </button>
+            {/* Notifications Dropdown */}
+            <div className="relative">
+              <button 
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-850 transition-colors relative focus:outline-none"
+                title="Notifications"
+              >
+                <Bell className="w-4 h-4" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 w-4 h-4 bg-indigo-600 text-white rounded-full text-[8px] font-extrabold flex items-center justify-center animate-pulse">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+
+              <AnimatePresence>
+                {showNotifications && (
+                  <>
+                    <div className="fixed inset-0 z-30" onClick={() => setShowNotifications(false)} />
+                    <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-45 py-2 text-xs text-left max-h-[350px] overflow-y-auto">
+                      <div className="px-4 py-2 border-b border-slate-150 dark:border-slate-800 flex justify-between items-center">
+                        <span className="font-bold text-slate-850 dark:text-slate-205">Inbox Notifications</span>
+                        {unreadCount > 0 && (
+                          <span className="bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded text-[9px] font-bold">
+                            {unreadCount} Unread
+                          </span>
+                        )}
+                      </div>
+                      
+                      <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {notifications.length > 0 ? (
+                          notifications.map((notif) => (
+                            <div 
+                              key={notif._id || notif.id}
+                              onClick={() => handleMarkAsRead(notif._id || notif.id)}
+                              className={`p-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${
+                                !notif.isRead ? 'bg-indigo-50/20 dark:bg-indigo-950/10 font-medium' : ''
+                              }`}
+                            >
+                              <div className="flex justify-between items-start gap-2">
+                                <span className={`text-[10px] font-bold ${!notif.isRead ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-305'}`}>
+                                  {notif.title}
+                                </span>
+                                {!notif.isRead && (
+                                  <span className="w-1.5 h-1.5 bg-indigo-650 rounded-full shrink-0 mt-1" />
+                                )}
+                              </div>
+                              <p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
+                                {notif.message}
+                              </p>
+                              <span className="text-[8px] text-slate-400 block mt-1.5 font-mono">
+                                {new Date(notif.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="py-8 text-center text-slate-400 italic">No notifications found.</div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
 
             {/* Vertical Divider */}
             <div className="w-px h-6 bg-slate-200 dark:bg-slate-800" />

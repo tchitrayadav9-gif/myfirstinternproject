@@ -1,73 +1,53 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Cpu, Mail, Lock, ShieldAlert, ArrowLeft, Send, ChevronDown } from 'lucide-react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { Cpu, Lock, ShieldAlert, ArrowLeft, Send } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { authService } from '../services/api';
+import { useToast } from '../context/ToastContext';
 
-const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState('');
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-  
-  const { login } = useAuth();
+const ResetPassword = () => {
+  const { token } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
+
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (!email) {
-      setError('Corporate email is required.');
-      return;
-    }
-
     if (!password) {
-      setError('Portal password is required.');
+      setError('New password is required.');
       return;
     }
 
-    setIsLoggingIn(true);
-    
-    try {
-      const response = await login(email, password);
-      setIsLoggingIn(false);
-      
-      if (response.success) {
-        if (rememberMe) {
-          localStorage.setItem('rememberMe', email);
-        } else {
-          localStorage.removeItem('rememberMe');
-        }
+    if (password.length < 6) {
+      setError('Security password must be at least 6 characters.');
+      return;
+    }
 
-        // Redirect based on role
-        if (response.role?.toLowerCase() === 'admin') {
-          navigate('/dashboard');
-        } else {
-          navigate('/employee-dashboard');
-        }
-      } else {
-        setError(response.message);
-      }
+    if (password !== confirmPassword) {
+      setError('Confirmation password does not match.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      await authService.resetPassword(token, password, confirmPassword);
+      setIsLoading(false);
+      toast.success('Password updated successfully!');
+      navigate('/login');
     } catch (err) {
-      setIsLoggingIn(false);
-      setError('Server connection failed. Make sure the backend API is running.');
+      setIsLoading(false);
+      const msg = err.response?.data?.message || 'Password reset token is invalid or has expired.';
+      setError(msg);
+      toast.error(msg);
     }
   };
-
-
-
-
-
-  // Pre-fill remember me email
-  React.useEffect(() => {
-    const savedEmail = localStorage.getItem('rememberMe');
-    if (savedEmail) {
-      setEmail(savedEmail);
-      setRememberMe(true);
-    }
-  }, []);
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden">
@@ -78,11 +58,11 @@ const Login = () => {
       {/* Back button */}
       <div className="absolute top-8 left-8">
         <Link 
-          to="/" 
+          to="/login" 
           className="flex items-center space-x-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Back to Main Site</span>
+          <span>Back to Login</span>
         </Link>
       </div>
 
@@ -101,11 +81,11 @@ const Login = () => {
           <p className="text-xs text-slate-500">Employee & Client Management Environment</p>
         </div>
 
-        {/* Login Card */}
+        {/* Form Card */}
         <div className="glass-panel border border-slate-800 rounded-3xl p-6 md:p-8 text-left shadow-2xl relative">
           <div className="mb-6">
-            <h2 className="text-lg font-bold text-white">System Authentication</h2>
-            <p className="text-xs text-slate-400 mt-1">Sign in with your corporate portal credentials.</p>
+            <h2 className="text-lg font-bold text-white">Reset Password</h2>
+            <p className="text-xs text-slate-400 mt-1">Please type a new, secure security key for your account credentials.</p>
           </div>
 
           {error && (
@@ -116,29 +96,9 @@ const Login = () => {
           )}
 
           <form onSubmit={handleFormSubmit} className="space-y-4">
-            {/* Email input */}
+            {/* New Password input */}
             <div className="space-y-1.5">
-              <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider" htmlFor="email">Corporate Email</label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-500" />
-                <input 
-                  type="email" 
-                  id="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="e.g. employee@avon.co.in"
-                  className="w-full bg-slate-950/80 border border-slate-850 hover:border-slate-800 focus:border-sky-500/50 text-xs text-slate-200 pl-10 pr-4 py-3 rounded-xl focus:outline-none transition-all"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Password input */}
-            <div className="space-y-1.5">
-              <div className="flex justify-between items-center">
-                <label className="text-[10px] text-slate-405 font-bold uppercase tracking-wider" htmlFor="password">Security Password</label>
-                <Link to="/forgot-password" className="text-[10px] text-sky-400 hover:underline">Forgot password?</Link>
-              </div>
+              <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider" htmlFor="password">New Password</label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-500" />
                 <input 
@@ -146,54 +106,46 @@ const Login = () => {
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter security key..."
+                  placeholder="Enter new security key..."
                   className="w-full bg-slate-950/80 border border-slate-850 hover:border-slate-800 focus:border-sky-500/50 text-xs text-slate-200 pl-10 pr-4 py-3 rounded-xl focus:outline-none transition-all"
                   required
                 />
               </div>
             </div>
 
-            {/* Remember Credentials */}
-            <div className="flex items-center justify-between py-1 text-xs">
-              <label className="flex items-center space-x-2 text-slate-350 cursor-pointer">
+            {/* Confirm Password input */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider" htmlFor="confirmPassword">Confirm Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-500" />
                 <input 
-                  type="checkbox" 
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="rounded bg-slate-950 border-slate-850 text-sky-500/50"
+                  type="password" 
+                  id="confirmPassword"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Verify new security key..."
+                  className="w-full bg-slate-950/80 border border-slate-850 hover:border-slate-800 focus:border-sky-500/50 text-xs text-slate-200 pl-10 pr-4 py-3 rounded-xl focus:outline-none transition-all"
+                  required
                 />
-                <span>Remember Credentials</span>
-              </label>
+              </div>
             </div>
 
             {/* Submit button */}
             <button
               type="submit"
-              disabled={isLoggingIn}
+              disabled={isLoading}
               className="w-full py-3 bg-sky-600 hover:bg-sky-550 disabled:bg-slate-800 text-white font-semibold rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2 text-xs uppercase tracking-wider mt-2"
             >
-              {isLoggingIn ? (
+              {isLoading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  <span>Sign In</span>
+                  <span>Update Password</span>
                   <Send className="w-3.5 h-3.5" />
                 </>
               )}
             </button>            
           </form>
-
-
-
-          {/* Redirect to Register */}
-          <div className="mt-4 text-center">
-            <span className="text-xs text-slate-500">
-              Don't have an account?{' '}
-              <Link to="/register" className="text-sky-450 font-bold hover:underline">
-                Sign Up
-              </Link>
-            </span>
-          </div>
         </div>
 
         {/* Footer info */}
@@ -205,4 +157,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default ResetPassword;

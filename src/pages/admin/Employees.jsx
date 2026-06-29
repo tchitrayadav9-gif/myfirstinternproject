@@ -5,8 +5,10 @@ import {
 } from 'lucide-react';
 import { employeeService } from '../../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useToast } from '../../context/ToastContext';
 
 const Employees = () => {
+  const toast = useToast();
   const [employees, setEmployees] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [deptFilter, setDeptFilter] = useState('All');
@@ -154,6 +156,7 @@ const Employees = () => {
         ? formData.skills.split(',').map(s => s.trim()).filter(Boolean)
         : [];
       const res = await employeeService.create({ ...formData, skills: skillsArray });
+      toast.success('Employee Added successfully!');
       setIsAddModalOpen(false);
       resetForm();
       fetchEmployees();
@@ -168,7 +171,9 @@ const Employees = () => {
       }
     } catch (err) {
       console.error(err);
-      setFormErrors({ server: err.response?.data?.message || 'Error occurred while saving.' });
+      const errMessage = err.response?.data?.message || 'Error occurred while saving.';
+      setFormErrors({ server: errMessage });
+      toast.error(errMessage);
     }
   };
 

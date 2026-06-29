@@ -1,4 +1,5 @@
 const Project = require('../models/Project');
+const Notification = require('../models/Notification');
 
 // @desc    Get all projects
 // @route   GET /api/projects
@@ -31,6 +32,13 @@ const createProject = async (req, res) => {
       status: status || 'Backlog',
       priority: priority || 'Medium',
       due
+    });
+
+    // Create project notification for all employees
+    await Notification.create({
+      recipient: 'all',
+      title: 'New Enterprise Project Initiated',
+      message: `A new corporate project "${name}" has been initiated for client: ${client} (Priority: ${priority || 'Medium'}).`
     });
 
     res.status(201).json(project);

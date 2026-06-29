@@ -57,7 +57,19 @@ export const authService = {
     return res.data;
   },
   getDashboardStats: async () => {
-    const res = await API.get('/auth/dashboard-stats');
+    const res = await API.get('/dashboard/stats');
+    return res.data;
+  },
+  getDashboardCharts: async () => {
+    const res = await API.get('/dashboard/charts');
+    return res.data;
+  },
+  forgotPassword: async (email) => {
+    const res = await API.post('/auth/forgot-password', { email });
+    return res.data;
+  },
+  resetPassword: async (token, password, confirmPassword) => {
+    const res = await API.post(`/auth/reset-password/${token}`, { password, confirmPassword });
     return res.data;
   }
 };
@@ -166,6 +178,18 @@ export const scheduleService = {
   },
   delete: async (id) => {
     const res = await API.delete(`/schedules/${id}`);
+    return res.data;
+  }
+};
+
+// --- Notifications Cloud Services ---
+export const notificationService = {
+  getAll: async () => {
+    const res = await API.get('/notifications');
+    return res.data;
+  },
+  markAsRead: async (id) => {
+    const res = await API.put(`/notifications/${id}/read`);
     return res.data;
   }
 };

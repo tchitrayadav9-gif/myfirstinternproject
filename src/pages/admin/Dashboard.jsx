@@ -259,7 +259,7 @@ const Dashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {employees.slice(0, 4).map((emp, idx) => {
+                  {employees.map((emp, idx) => {
                     const empId = emp._id ? String(emp._id) : (emp.id ? String(emp.id) : `emp-${idx}`);
                     const tasksCount = emp.tasks?.length || 0;
                     return (

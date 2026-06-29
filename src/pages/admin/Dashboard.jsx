@@ -197,11 +197,11 @@ const Dashboard = () => {
                 </div>
                 <TrendingUp className="w-4 h-4 text-blue-500" />
               </div>
-              <div className="h-52 w-full min-w-0">
+              <div className="h-52 w-full min-w-0 relative overflow-hidden">
                 {isLoading || !mounted ? (
                   <div className="h-full bg-slate-100 dark:bg-slate-800/40 animate-pulse rounded-xl" />
                 ) : (
-                  <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                  <ResponsiveContainer width="99%" height="99%">
                     <BarChart data={productivityData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                       <XAxis dataKey="name" fontSize={9} stroke="#94a3b8" tickLine={false} />
@@ -223,11 +223,11 @@ const Dashboard = () => {
                 </div>
                 <TrendingUp className="w-4 h-4 text-cyan-500" />
               </div>
-              <div className="h-52 w-full min-w-0">
+              <div className="h-52 w-full min-w-0 relative overflow-hidden">
                 {isLoading || !mounted ? (
                   <div className="h-full bg-slate-100 dark:bg-slate-800/40 animate-pulse rounded-xl" />
                 ) : (
-                  <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                  <ResponsiveContainer width="99%" height="99%">
                     <LineChart data={workProgressData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                       <XAxis dataKey="name" fontSize={9} stroke="#94a3b8" tickLine={false} />
@@ -297,11 +297,11 @@ const Dashboard = () => {
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Tasks Progress Indices</h3>
             <p className="text-[9px] text-slate-405">Overall completion sprint balance</p>
           </div>
-          <div className="h-64 w-full flex items-center justify-center min-w-0">
+          <div className="h-64 w-full flex items-center justify-center min-w-0 relative overflow-hidden">
             {isLoading || !mounted ? (
               <div className="w-40 h-40 rounded-full border-8 border-slate-100 dark:border-slate-800/40 animate-pulse" />
             ) : (
-              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+              <ResponsiveContainer width="99%" height="99%">
                 <PieChart>
                   <Pie
                     data={taskCompletionData}

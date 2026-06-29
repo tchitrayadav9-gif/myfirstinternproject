@@ -112,11 +112,11 @@ const Analytics = () => {
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Department Workloads (Radar)</h3>
               <p className="text-[9px] text-slate-405 font-medium">Comparative metrics mapping total employees (scaled) vs delegated tasks</p>
             </div>
-            <div className="h-64 w-full flex justify-center items-center">
+            <div className="h-64 w-full flex justify-center items-center relative overflow-hidden">
               {!mounted ? (
                 <div className="h-full w-full bg-slate-100 dark:bg-slate-800/40 animate-pulse rounded-xl" />
               ) : (
-                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                <ResponsiveContainer width="99%" height="99%">
                   <RadarChart cx="50%" cy="50%" outerRadius="70%" data={departmentWorkload}>
                     <PolarGrid stroke="#e2e8f0" />
                     <PolarAngleAxis dataKey="subject" fontSize={9} />
@@ -136,11 +136,11 @@ const Analytics = () => {
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Support Desk Response Rate</h3>
               <p className="text-[9px] text-slate-405 font-medium">Monthly tickets raised vs resolved timeline progress</p>
             </div>
-            <div className="h-64 w-full">
+            <div className="h-64 w-full relative overflow-hidden">
               {!mounted ? (
                 <div className="h-full w-full bg-slate-100 dark:bg-slate-800/40 animate-pulse rounded-xl" />
               ) : (
-                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                <ResponsiveContainer width="99%" height="99%">
                   <ComposedChart data={ticketResponseData}>
                     <CartesianGrid stroke="#f1f5f9" vertical={false} />
                     <XAxis dataKey="month" fontSize={9} stroke="#94a3b8" tickLine={false} />
@@ -161,11 +161,11 @@ const Analytics = () => {
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Sprint Delivery Velocity</h3>
               <p className="text-[9px] text-slate-405 font-medium">Closed backlog deliverables index per sprint interval</p>
             </div>
-            <div className="h-64 w-full">
+            <div className="h-64 w-full relative overflow-hidden">
               {!mounted ? (
                 <div className="h-full w-full bg-slate-100 dark:bg-slate-800/40 animate-pulse rounded-xl" />
               ) : (
-                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                <ResponsiveContainer width="99%" height="99%">
                   <LineChart data={deliveryVelocity}>
                     <CartesianGrid stroke="#f1f5f9" vertical={false} />
                     <XAxis dataKey="sprint" fontSize={9} stroke="#94a3b8" tickLine={false} />

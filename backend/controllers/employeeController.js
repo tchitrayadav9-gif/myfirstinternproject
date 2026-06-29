@@ -50,23 +50,34 @@ const createEmployee = async (req, res) => {
     // Auto-generate employeeId
     const employeeId = await generateEmployeeId();
 
-    // Auto-generate secure temporary password
-    const tempPassword = `Avon@${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    // Check if corresponding User record already exists
+    let existingUser = await User.findOne({ email });
+    let tempPassword = '';
+    
+    if (!existingUser) {
+      // Auto-generate secure temporary password
+      tempPassword = `Avon@${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
-    // Hash temporary password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(tempPassword, salt);
+      // Hash temporary password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(tempPassword, salt);
 
-    // Create corresponding User credentials record
-    await User.create({
-      name,
-      email,
-      password: hashedPassword,
-      role: 'employee',
-      department,
-      employeeId,
-      avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=256&h=256'
-    });
+      // Create corresponding User credentials record
+      await User.create({
+        name,
+        email,
+        password: hashedPassword,
+        role: 'employee',
+        department,
+        employeeId,
+        avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=256&h=256'
+      });
+    } else {
+      // Link existing user profile
+      existingUser.employeeId = employeeId;
+      existingUser.department = department;
+      await existingUser.save();
+    }
 
     // Create Employee profile
     const employee = await Employee.create({
